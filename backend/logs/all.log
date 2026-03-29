@@ -1,0 +1,13 @@
+2026-03-30 02:34:29:3429 [31merror[39m: [31mInitialization failed password authentication failed for user "postgres"[39m
+2026-03-30 02:38:56:3856 [31merror[39m: [31mInitialization failed database "printwave" does not exist[39m
+2026-03-30 02:40:32:4032 [31merror[39m: [31mInitialization failed Column type for ProductImage#productId is not defined and cannot be guessed. Make sure you have turned on an "emitDecoratorMetadata": true option in tsconfig.json. Also make sure you have imported "reflect-metadata" on top of the main entry file in your application (before any entity imported).If you are using JavaScript instead of TypeScript you must explicitly provide a column type.[39m
+2026-03-30 02:42:03:423 [31merror[39m: [31mInitialization failed Column type for Coupon#code is not defined and cannot be guessed. Make sure you have turned on an "emitDecoratorMetadata": true option in tsconfig.json. Also make sure you have imported "reflect-metadata" on top of the main entry file in your application (before any entity imported).If you are using JavaScript instead of TypeScript you must explicitly provide a column type.[39m
+2026-03-30 02:42:18:4218 [31merror[39m: [31mInitialization failed Column type for Coupon#code is not defined and cannot be guessed. Make sure you have turned on an "emitDecoratorMetadata": true option in tsconfig.json. Also make sure you have imported "reflect-metadata" on top of the main entry file in your application (before any entity imported).If you are using JavaScript instead of TypeScript you must explicitly provide a column type.[39m
+2026-03-30 02:42:44:4244 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 02:42:44:4244 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 02:45:02:452 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 02:45:02:452 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 02:46:02:462 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 02:46:02:462 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 02:50:19:5019 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 02:50:19:5019 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
