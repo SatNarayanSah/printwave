@@ -4,33 +4,33 @@ type RequestOptions = {
   method?: string;
   headers?: Record<string, string>;
   body?: any;
+  isFormData?: boolean;
 };
 
+/**
+ * All requests use credentials:'include' so the httpOnly cookie (pw_token)
+ * is sent automatically. No localStorage or sessionStorage is used.
+ */
 export const fetchApi = async (endpoint: string, options: RequestOptions = {}) => {
-  const { method = "GET", headers = {}, body } = options;
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const { method = "GET", headers = {}, body, isFormData = false } = options;
 
   const config: RequestInit = {
     method,
-    headers: {
+    credentials: "include", // Send cookies with every request
+    headers: isFormData ? headers : {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
-    ...(body ? { body: JSON.stringify(body) } : {}),
+    ...(body ? { body: isFormData ? body : JSON.stringify(body) } : {}),
   };
 
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
-    }
-    return data;
-  } catch (error) {
-    console.error(`API Error on ${endpoint}:`, error);
-    throw error;
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Something went wrong");
   }
+  return data;
 };
 
 export const productsApi = {
@@ -46,6 +46,9 @@ export const productsApi = {
 export const authApi = {
   login: (credentials: any) => fetchApi("/auth/login", { method: "POST", body: credentials }),
   register: (userData: any) => fetchApi("/auth/register", { method: "POST", body: userData }),
+  logout: () => fetchApi("/auth/logout", { method: "POST" }),
+  getMe: () => fetchApi("/auth/me"),
+  verifyEmail: (token: string) => fetchApi(`/auth/verify-email?token=${token}`),
 };
 
 export const cartApi = {
@@ -57,16 +60,8 @@ export const cartApi = {
 
 export const designsApi = {
   getCurrent: () => fetchApi("/designs"),
-  upload: (formData: FormData) => {
-    const token = localStorage.getItem("token");
-    return fetch(`${API_BASE_URL}/designs`, {
-      method: "POST",
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: formData,
-    }).then(res => res.json());
-  },
+  upload: (formData: FormData) =>
+    fetchApi("/designs", { method: "POST", body: formData, isFormData: true }),
   delete: (id: string) => fetchApi(`/designs/${id}`, { method: "DELETE" }),
 };
 
@@ -84,4 +79,15 @@ export const paymentsApi = {
 export const reviewsApi = {
   create: (reviewData: any) => fetchApi("/reviews", { method: "POST", body: reviewData }),
   getForProduct: (productId: string) => fetchApi(`/reviews/product/${productId}`),
+};
+
+export const adminApi = {
+  getDashboardStats: () => fetchApi("/admin/dashboard"),
+  getProducts: () => fetchApi("/admin/products"),
+  createProduct: (data: any) => fetchApi("/admin/products", { method: "POST", body: data }),
+  updateProduct: (id: string, data: any) => fetchApi(`/admin/products/${id}`, { method: "PUT", body: data }),
+  deleteProduct: (id: string) => fetchApi(`/admin/products/${id}`, { method: "DELETE" }),
+  getOrders: () => fetchApi("/admin/orders"),
+  updateOrderStatus: (id: string, status: string) => fetchApi(`/admin/orders/${id}/status`, { method: "PUT", body: { status } }),
+  getDesigns: () => fetchApi("/admin/designs"),
 };

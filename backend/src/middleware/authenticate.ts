@@ -6,7 +6,7 @@ import { AppDataSource } from '../config/data-source.js';
 import { User } from '../entities/User.js';
 
 export interface AuthRequest extends Request {
-  user?: { id: string; role: string };
+  user?: { sub: string; id: string; role: string };
 }
 
 export const authenticate = async (
@@ -15,12 +15,21 @@ export const authenticate = async (
   next: NextFunction
 ) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw ApiError.unauthorized('No token provided');
+    // 1. Try httpOnly cookie first (primary method)
+    let token = req.cookies?.pw_token;
+
+    // 2. Fallback to Authorization header (for mobile/API clients)
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
     }
 
-    const token = authHeader.split(' ')[1];
+    if (!token) {
+      throw ApiError.unauthorized('Authentication required. Please log in.');
+    }
+
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
       sub: string;
       role: string;
@@ -29,27 +38,30 @@ export const authenticate = async (
     const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOne({
       where: { id: payload.sub },
-      select: ['id', 'role', 'isActive']
+      select: ['id', 'role', 'isActive', 'isVerified']
     });
 
     if (!user || !user.isActive) {
       throw ApiError.unauthorized('User account is disabled or does not exist');
     }
 
-    req.user = { id: user.id, role: user.role };
+    req.user = { sub: payload.sub, id: user.id, role: user.role };
     next();
   } catch (err) {
     if (err instanceof jwt.JsonWebTokenError) {
-      return next(ApiError.unauthorized('Invalid or expired token'));
+      return next(ApiError.unauthorized('Invalid or expired session. Please log in again.'));
     }
     next(err);
   }
 };
 
+// Named alias used in auth.routes.ts
+export { authenticate as auth };
+
 export const authorize = (...roles: string[]) =>
   (req: AuthRequest, _res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return next(ApiError.forbidden('You do not have permission'));
+      return next(ApiError.forbidden('You do not have permission to perform this action'));
     }
     next();
   };

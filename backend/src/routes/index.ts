@@ -8,8 +8,11 @@ import designRoutes from './designs.routes.js';
 import paymentRoutes from './payments.routes.js';
 import reviewRoutes from './reviews.routes.js';
 
+import adminRoutes from './admin.routes.js';
+
 const router = Router();
 
+router.use('/admin', adminRoutes);
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
 router.use('/cart', cartRoutes);
@@ -19,3 +22,4 @@ router.use('/payments', paymentRoutes);
 router.use('/reviews', reviewRoutes);
 
 export default router;
+

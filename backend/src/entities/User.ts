@@ -46,6 +46,12 @@ export class User {
   @Column("boolean", { name: 'is_verified', default: false })
   isVerified!: boolean;
 
+  @Column("varchar", { name: 'email_verification_token', nullable: true })
+  emailVerificationToken!: string;
+
+  @Column("timestamp", { name: 'email_verification_expiry', nullable: true })
+  emailVerificationExpiry!: Date;
+
   @Column("boolean", { name: 'is_active', default: true })
   isActive!: boolean;
 

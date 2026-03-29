@@ -2,32 +2,44 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { authApi } from '@/lib/api';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [userLoading, setUserLoading] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    
-    const checkUser = () => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) setUser(JSON.parse(storedUser));
-    };
-
-    checkUser();
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    // Fetch current user from the server using the httpOnly cookie
+    const fetchUser = async () => {
+      try {
+        const response = await authApi.getMe();
+        setUser(response.data?.user || null);
+      } catch {
+        setUser(null); // Not logged in or cookie expired
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    fetchUser();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [pathname]); // Re-fetch when route changes
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } catch { /* ignore */ }
     setUser(null);
-    window.location.href = '/';
+    router.push('/');
+    router.refresh();
   };
 
   const navLinks = [
@@ -36,6 +48,10 @@ const Navbar = () => {
     { name: 'Custom Design', href: '/designs' },
     { name: 'Cart', href: '/cart' },
   ];
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
@@ -52,7 +68,7 @@ const Navbar = () => {
           </div>
         </Link>
 
-        {/* Global Desktop Navigation - Professional scale */}
+        {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center gap-1">
           <div className="flex items-center gap-2">
             {navLinks.map((link) => (
@@ -73,9 +89,19 @@ const Navbar = () => {
           <div className="w-px h-6 bg-divider mx-4" />
           
           <div className="flex items-center gap-4">
-            {user ? (
+            {userLoading ? (
+              <div className="w-24 h-8 bg-secondary-bg rounded-lg animate-pulse" />
+            ) : user ? (
               <div className="flex items-center gap-4">
-                <span className="text-xs font-bold text-main">{user.firstName || 'Guest'}</span>
+                <span className="text-xs font-bold text-main">{user.firstName}</span>
+                {user.role === 'ADMIN' && (
+                  <Link 
+                    href="/admin"
+                    className="px-5 py-2 rounded-lg bg-main text-white text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <button 
                   onClick={handleLogout}
                   className="px-5 py-2 rounded-lg bg-white text-main text-[10px] font-black uppercase tracking-widest border border-divider hover:border-main transition-all"
@@ -126,8 +152,19 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
-          <div className="pt-4 mt-2 border-t border-divider">
+          <div className="pt-4 mt-2 border-t border-divider flex flex-col gap-2">
+            {user ? (
+              <>
+                {user.role === 'ADMIN' && (
+                  <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="block w-full py-4 text-center rounded-xl bg-secondary-bg text-main font-bold text-sm">
+                    Admin Dashboard
+                  </Link>
+                )}
+                <button onClick={handleLogout} className="block w-full py-4 text-center rounded-xl bg-main text-white font-bold text-sm">Logout</button>
+              </>
+            ) : (
               <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)} className="block w-full py-4 text-center rounded-xl bg-main text-white font-bold text-sm">Sign In</Link>
+            )}
           </div>
         </div>
       )}

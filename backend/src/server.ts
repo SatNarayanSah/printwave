@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.config.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -14,8 +15,12 @@ export const createServer = () => {
 
   // Middleware
   app.use(helmet());
-  app.use(cors());
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true, // Required for cookies
+  }));
   app.use(express.json());
+  app.use(cookieParser()); // Parse cookies before routes
   app.use(morgan('dev'));
 
   // Welcome Route

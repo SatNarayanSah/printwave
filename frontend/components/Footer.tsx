@@ -1,7 +1,13 @@
+'use client';
+
 import Link from 'next/link';
 import React from 'react';
+import { usePathname } from 'next/navigation';
 
 const Footer = () => {
+    const pathname = usePathname();
+    if (pathname?.startsWith('/admin')) return null;
+
     return (
         <footer className="bg-white pt-20 pb-12 border-t border-divider relative overflow-hidden">
             <div className="container-wide relative z-10 text-main">
