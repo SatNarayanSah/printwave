@@ -4,8 +4,11 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { logger } from '../utils/logger.js';
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
 export const errorHandler = (
-  err: any,
+  err: unknown,
   req: Request,
   res: Response,
   _next: NextFunction
@@ -15,10 +18,17 @@ export const errorHandler = (
   }
 
   // TypeORM Duplicate Entry Error (Postgres code 23505)
-  if (err.code === '23505') {
+  const code =
+    isRecord(err) && (typeof err.code === 'string' || typeof err.code === 'number')
+      ? String(err.code)
+      : undefined;
+
+  if (code === '23505') {
     return res.status(409).json(ApiResponse.error('A record with this value already exists'));
   }
 
-  logger.error(err.message, { stack: err.stack, url: req.url });
+  const message = err instanceof Error ? err.message : 'Unknown error';
+  const stack = err instanceof Error ? err.stack : undefined;
+  logger.error(message, { stack, url: req.url });
   return res.status(500).json(ApiResponse.error('Something went wrong'));
 };

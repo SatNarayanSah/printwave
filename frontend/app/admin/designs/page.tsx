@@ -3,8 +3,16 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
 
+interface Design {
+  id: string;
+  name: string;
+  imageUrl: string;
+  user?: { email?: string };
+  createdAt: string;
+}
+
 export default function AdminDesigns() {
-  const [designs, setDesigns] = useState<any[]>([]);
+  const [designs, setDesigns] = useState<Design[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

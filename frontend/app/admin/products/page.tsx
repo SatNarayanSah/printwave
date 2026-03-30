@@ -3,8 +3,20 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
 
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  basePrice: number | string;
+  fabric: string;
+  gsm?: number;
+  isCustomizable: boolean;
+  isActive: boolean;
+}
+
 export default function AdminProducts() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -48,12 +60,12 @@ export default function AdminProducts() {
       setEditingId(null);
       setFormData({ name: '', slug: '', description: '', basePrice: '', fabric: '', gsm: '', isCustomizable: true, isActive: true });
       fetchProducts();
-    } catch (err: any) {
-      alert(err.message || 'Failed to save product');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to save product');
     }
   };
 
-  const handleEdit = (product: any) => {
+  const handleEdit = (product: Product) => {
     setFormData({
       name: product.name,
       slug: product.slug,
@@ -73,8 +85,8 @@ export default function AdminProducts() {
     try {
       await adminApi.deleteProduct(id);
       fetchProducts();
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete product');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to delete product');
     }
   };
 
@@ -152,7 +164,7 @@ export default function AdminProducts() {
                    <span className="block font-black text-main">{p.name}</span>
                    <span className="block text-[10px] font-bold text-muted uppercase tracking-wider mt-0.5">/{p.slug}</span>
                 </td>
-                <td className="px-6 py-4 lg:px-8 font-black text-main">${parseFloat(p.basePrice).toFixed(2)}</td>
+                <td className="px-6 py-4 lg:px-8 font-black text-main">${Number(p.basePrice).toFixed(2)}</td>
                 <td className="px-6 py-4 lg:px-8">
                   <span className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-widest font-black ${p.isCustomizable ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-[#f1f5f9] text-muted border border-divider/60'}`}>
                     {p.isCustomizable ? 'Yes' : 'No'}

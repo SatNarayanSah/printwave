@@ -43,3 +43,42 @@
 2026-03-30 04:03:55:355 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
 2026-03-30 04:04:13:413 [32minfo[39m: [32mDatabase connection established[39m
 2026-03-30 04:04:13:413 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:07:26:726 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:07:26:726 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:24:33:2433 [31merror[39m: [31mnull value in column "category_id" of relation "products" violates not-null constraint[39m
+2026-03-30 04:25:31:2531 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:25:32:2532 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:36:40:3640 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:36:40:3640 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:36:57:3657 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:36:57:3657 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:37:07:377 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:37:07:377 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:37:30:3730 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:37:30:3730 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:37:50:3750 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:37:50:3750 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:38:10:3810 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:38:10:3810 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:43:12:4312 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:43:12:4312 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:43:18:4318 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:43:18:4318 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:43:24:4324 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:43:24:4324 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:43:28:4328 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:43:28:4328 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:44:40:4440 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:44:40:4440 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:44:47:4447 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:44:47:4447 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:45:02:452 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:45:02:452 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:45:18:4518 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:45:18:4518 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:49:16:4916 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:49:16:4916 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:49:21:4921 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:49:21:4921 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-03-30 04:52:33:5233 [32minfo[39m: [32mDatabase connection established[39m
+2026-03-30 04:52:33:5233 [32minfo[39m: [32mServer is running at http://localhost:5000[39m

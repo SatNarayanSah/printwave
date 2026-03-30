@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { register, login, logout, verifyEmail, getMe } from '../controllers/auth.controller.js';
 import { validate } from '../middleware/validate.js';
 import { registerSchema, loginSchema } from '../validators/auth.validator.js';
@@ -33,24 +33,26 @@ if (process.env.NODE_ENV !== 'production') {
         html: '<h2>SMTP is working correctly!</h2><p>If you receive this, your email configuration is valid.</p>',
       });
       res.json({ ok: true, message: `Test email sent to ${to}` });
-    } catch (err: any) {
-      res.status(500).json({ ok: false, error: err.message });
+    } catch (err: unknown) {
+      res.status(500).json({ ok: false, error: err instanceof Error ? err.message : 'failed' });
     }
   });
 
-  router.get('/make-me-admin', authenticate, async (req: any, res) => {
+  router.get('/make-me-admin', authenticate, async (req: Request & { user?: { id: string } }, res) => {
     try {
       const { AppDataSource } = await import('../config/data-source.js');
       const { User } = await import('../entities/User.js');
       const userRepo = AppDataSource.getRepository(User);
-      const user = await userRepo.findOneBy({ id: req.user.id });
+      // @ts-ignore
+      const user = await userRepo.findOneBy({ id: req.user?.id });
       if(user) {
-        user.role = 'ADMIN' as any;
+        // @ts-ignore
+        user.role = 'ADMIN';
         await userRepo.save(user);
         res.json({ ok: true, message: 'You are now an Admin! Please sign in again.' });
       }
-    } catch(err: any){
-      res.status(500).json({ ok: false, error: err.message });
+    } catch(err: unknown){
+      res.status(500).json({ ok: false, error: err instanceof Error ? err.message : 'failed' });
     }
   });
 }

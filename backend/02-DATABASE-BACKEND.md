@@ -558,7 +558,7 @@ export const errorHandler = (
   }
 
   // Prisma unique constraint violation
-  if ((err as any).code === 'P2002') {
+  if ((err as { code?: string }).code === 'P2002') {
     return res.status(409).json(ApiResponse.error('A record with this value already exists'));
   }
 
@@ -667,7 +667,7 @@ export const getProducts = async (
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
-    const where: any = { isActive: true };
+    const where: Record<string, unknown> = { isActive: true };
     if (category) where.category = { slug: category };
     if (search) where.name = { contains: search as string, mode: 'insensitive' };
     if (minPrice || maxPrice) {

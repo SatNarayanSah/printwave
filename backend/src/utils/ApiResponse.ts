@@ -3,13 +3,13 @@ export class ApiResponse<T> {
   success: boolean;
   message: string;
   data: T | null;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 
   constructor(
     success: boolean,
     message: string,
     data: T | null = null,
-    meta?: Record<string, any>
+    meta?: Record<string, unknown>
   ) {
     this.success = success;
     this.message = message;
@@ -17,7 +17,7 @@ export class ApiResponse<T> {
     this.meta = meta;
   }
 
-  static ok<T>(data: T, message = 'Success', meta?: Record<string, any>) {
+  static ok<T>(data: T, message = 'Success', meta?: Record<string, unknown>) {
     return new ApiResponse(true, message, data, meta);
   }
 

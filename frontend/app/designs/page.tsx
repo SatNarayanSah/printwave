@@ -4,8 +4,14 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { designsApi } from '@/lib/api';
 
+interface Design {
+    id: string;
+    imageUrl: string;
+    name: string;
+}
+
 const DesignsPage = () => {
-    const [designs, setDesigns] = useState<any[]>([]);
+    const [designs, setDesigns] = useState<Design[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -17,9 +23,10 @@ const DesignsPage = () => {
             const response = await designsApi.getCurrent();
             setDesigns(response.data || []);
             setIsAuthenticated(true);
-        } catch (err: any) {
+        } catch (err: unknown) {
             // 401/403 means not logged in
-            if (err.message?.toLowerCase().includes('auth') || err.message?.toLowerCase().includes('log')) {
+            const errorObj = err as Error;
+            if (errorObj.message?.toLowerCase().includes('auth') || errorObj.message?.toLowerCase().includes('log')) {
               setIsAuthenticated(false);
             } else {
               setIsAuthenticated(true); // Logged in but other error
@@ -47,8 +54,8 @@ const DesignsPage = () => {
         try {
             await designsApi.upload(formData);
             await fetchDesigns();
-        } catch (err: any) {
-            setUploadError(err.message || 'Upload failed. Please try again.');
+        } catch (err: unknown) {
+            setUploadError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
         } finally {
             setUploading(false);
             // Reset input so same file can be re-uploaded
@@ -61,8 +68,8 @@ const DesignsPage = () => {
         try {
             await designsApi.delete(id);
             setDesigns(prev => prev.filter(d => d.id !== id));
-        } catch (err: any) {
-            alert(err.message || 'Delete failed');
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : 'Delete failed');
         }
     };
 

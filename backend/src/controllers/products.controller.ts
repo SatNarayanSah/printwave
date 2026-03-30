@@ -4,13 +4,13 @@ import { AppDataSource } from '../config/data-source.js';
 import { Product } from '../entities/Product.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
-import { ILike, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { Between, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 
 export const getProducts = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+  ) => {
   try {
     const { page = '1', limit = '20', category, search, minPrice, maxPrice } = req.query;
 
@@ -18,11 +18,22 @@ export const getProducts = async (
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
-    const where: any = { isActive: true };
-    if (category) where.category = { slug: category };
-    if (search) where.name = ILike(`%${search}%`);
-    if (minPrice) where.basePrice = MoreThanOrEqual(parseFloat(minPrice as string));
-    if (maxPrice) where.basePrice = LessThanOrEqual(parseFloat(maxPrice as string));
+    const where: FindOptionsWhere<Product> = { isActive: true };
+
+    const categorySlug = typeof category === 'string' ? category : undefined;
+    const searchTerm = typeof search === 'string' ? search : undefined;
+    const min = typeof minPrice === 'string' ? Number(minPrice) : undefined;
+    const max = typeof maxPrice === 'string' ? Number(maxPrice) : undefined;
+
+    if (categorySlug) where.category = { slug: categorySlug };
+    if (searchTerm) where.name = ILike(`%${searchTerm}%`);
+
+    const minValid = typeof min === 'number' && Number.isFinite(min);
+    const maxValid = typeof max === 'number' && Number.isFinite(max);
+
+    if (minValid && maxValid) where.basePrice = Between<string | number>(min, max);
+    else if (minValid) where.basePrice = MoreThanOrEqual<string | number>(min);
+    else if (maxValid) where.basePrice = LessThanOrEqual<string | number>(max);
 
     const productRepo = AppDataSource.getRepository(Product);
     const [products, total] = await productRepo.findAndCount({

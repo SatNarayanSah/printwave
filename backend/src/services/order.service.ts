@@ -83,7 +83,7 @@ export const findByUser = async (userId: string) => {
 
 export const findById = async (id: string, userId?: string) => {
   const orderRepo = AppDataSource.getRepository(Order);
-  const where: any = { id };
+  const where: { id: string; userId?: string } = { id };
   if (userId) where.userId = userId;
 
   const order = await orderRepo.findOne({

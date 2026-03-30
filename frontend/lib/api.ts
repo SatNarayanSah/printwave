@@ -3,7 +3,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 type RequestOptions = {
   method?: string;
   headers?: Record<string, string>;
-  body?: any;
+  body?: Record<string, unknown> | string | FormData;
   isFormData?: boolean;
 };
 
@@ -44,8 +44,8 @@ export const productsApi = {
 };
 
 export const authApi = {
-  login: (credentials: any) => fetchApi("/auth/login", { method: "POST", body: credentials }),
-  register: (userData: any) => fetchApi("/auth/register", { method: "POST", body: userData }),
+  login: (credentials: Record<string, string>) => fetchApi("/auth/login", { method: "POST", body: credentials }),
+  register: (userData: Record<string, string>) => fetchApi("/auth/register", { method: "POST", body: userData }),
   logout: () => fetchApi("/auth/logout", { method: "POST" }),
   getMe: () => fetchApi("/auth/me"),
   verifyEmail: (token: string) => fetchApi(`/auth/verify-email?token=${token}`),
@@ -53,9 +53,9 @@ export const authApi = {
 
 export const cartApi = {
   get: () => fetchApi("/cart"),
-  addItem: (item: any) => fetchApi("/cart/add", { method: "POST", body: item }),
+  addItem: (item: Record<string, unknown>) => fetchApi("/cart/add", { method: "POST", body: item }),
   removeItem: (id: string) => fetchApi(`/cart/remove/${id}`, { method: "DELETE" }),
-  sync: (items: any[]) => fetchApi("/cart/sync", { method: "POST", body: { items } }),
+  sync: (items: Record<string, unknown>[]) => fetchApi("/cart/sync", { method: "POST", body: { items } }),
 };
 
 export const designsApi = {
@@ -66,7 +66,7 @@ export const designsApi = {
 };
 
 export const ordersApi = {
-  create: (orderData: any) => fetchApi("/orders", { method: "POST", body: orderData }),
+  create: (orderData: Record<string, unknown>) => fetchApi("/orders", { method: "POST", body: orderData }),
   getMyOrders: () => fetchApi("/orders"),
   getOne: (id: string) => fetchApi(`/orders/${id}`),
 };
@@ -77,15 +77,15 @@ export const paymentsApi = {
 };
 
 export const reviewsApi = {
-  create: (reviewData: any) => fetchApi("/reviews", { method: "POST", body: reviewData }),
+  create: (reviewData: Record<string, unknown>) => fetchApi("/reviews", { method: "POST", body: reviewData }),
   getForProduct: (productId: string) => fetchApi(`/reviews/product/${productId}`),
 };
 
 export const adminApi = {
   getDashboardStats: () => fetchApi("/admin/dashboard"),
   getProducts: () => fetchApi("/admin/products"),
-  createProduct: (data: any) => fetchApi("/admin/products", { method: "POST", body: data }),
-  updateProduct: (id: string, data: any) => fetchApi(`/admin/products/${id}`, { method: "PUT", body: data }),
+  createProduct: (data: Record<string, unknown>) => fetchApi("/admin/products", { method: "POST", body: data }),
+  updateProduct: (id: string, data: Record<string, unknown>) => fetchApi(`/admin/products/${id}`, { method: "PUT", body: data }),
   deleteProduct: (id: string) => fetchApi(`/admin/products/${id}`, { method: "DELETE" }),
   getOrders: () => fetchApi("/admin/orders"),
   updateOrderStatus: (id: string, status: string) => fetchApi(`/admin/orders/${id}/status`, { method: "PUT", body: { status } }),

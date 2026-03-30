@@ -9,8 +9,17 @@ const STATUS_OPTIONS = [
   'CANCELLED', 'REFUNDED'
 ];
 
+interface Order {
+  id: string;
+  orderNumber: string;
+  user?: { firstName?: string; lastName?: string; email?: string };
+  total: number | string;
+  createdAt: string;
+  status: string;
+}
+
 export default function AdminOrders() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
@@ -33,8 +42,8 @@ export default function AdminOrders() {
     try {
       await adminApi.updateOrderStatus(orderId, status);
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-    } catch (err: any) {
-      alert(err.message || 'Failed to update status');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to update status');
     }
   };
 
@@ -68,7 +77,7 @@ export default function AdminOrders() {
                   <span className="block font-black text-main">{o.user?.firstName} {o.user?.lastName}</span>
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-muted mt-0.5">{o.user?.email}</span>
                 </td>
-                <td className="px-6 py-4 lg:px-8 font-black text-main">${parseFloat(o.total).toFixed(2)}</td>
+                <td className="px-6 py-4 lg:px-8 font-black text-main">${Number(o.total).toFixed(2)}</td>
                 <td className="px-6 py-4 lg:px-8 text-muted">{new Date(o.createdAt).toLocaleDateString()}</td>
                 <td className="px-6 py-4 lg:px-8">
                   <select

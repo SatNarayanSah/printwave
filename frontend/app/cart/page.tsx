@@ -4,8 +4,24 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { cartApi } from '@/lib/api';
 
+interface CartItem {
+    id: string;
+    quantity: number;
+    product: {
+        name: string;
+        basePrice: number | string;
+        baseImage?: string;
+    };
+    variantInfo?: { size?: string; color?: string };
+}
+
+interface Cart {
+    id: string;
+    items: CartItem[];
+}
+
 const CartPage = () => {
-    const [cart, setCart] = useState<any>(null);
+    const [cart, setCart] = useState<Cart | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -15,8 +31,8 @@ const CartPage = () => {
             const response = await cartApi.get();
             setCart(response.data);
             setError(null);
-        } catch (err: any) {
-            setError(err.message || "Failed to load cart. Are you logged in?");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Failed to load cart. Are you logged in?");
         } finally {
             setLoading(false);
         }
@@ -30,8 +46,8 @@ const CartPage = () => {
         try {
             await cartApi.removeItem(id);
             fetchCart();
-        } catch (err: any) {
-            alert(err.message || "Could not remove item");
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : "Could not remove item");
         }
     };
 
@@ -53,8 +69,8 @@ const CartPage = () => {
         </div>
     );
 
-    const items = cart?.items || [];
-    const total = items.reduce((acc: number, item: any) => acc + (item.product.basePrice * item.quantity), 0);
+    const items: CartItem[] = cart?.items || [];
+    const total = items.reduce((acc: number, item: CartItem) => acc + (Number(item.product.basePrice) * item.quantity), 0);
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20 min-h-screen">
@@ -74,7 +90,7 @@ const CartPage = () => {
             ) : (
                 <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10">
                     <div className="lg:col-span-8 space-y-4">
-                        {items.map((item: any) => (
+                        {items.map((item: CartItem) => (
                             <div key={item.id} className="bg-white rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 shadow-sm border border-divider group transition-all hover:shadow-xl hover:translate-x-1">
                                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-primary-bg flex-shrink-0 border border-divider/50">
                                    <img src={item.product.baseImage || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=200"} alt={item.product.name} className="w-full h-full object-cover" />
@@ -98,7 +114,7 @@ const CartPage = () => {
                                 </div>
                                 <div className="text-center sm:text-right flex flex-col items-center sm:items-end gap-2">
                                    <div className="px-4 py-2 rounded-xl bg-primary-bg font-bold border border-divider">Qty: {item.quantity}</div>
-                                   <span className="text-xl font-bold text-main">${(item.product.basePrice * item.quantity).toFixed(2)}</span>
+                                   <span className="text-xl font-bold text-main">${(Number(item.product.basePrice) * item.quantity).toFixed(2)}</span>
                                 </div>
                             </div>
                         ))}

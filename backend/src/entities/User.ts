@@ -25,7 +25,7 @@ export class User {
   email!: string;
 
   @Column("varchar", { unique: true, nullable: true })
-  phone!: string;
+  phone!: string | null;
 
   @Column("varchar", { name: 'password_hash' })
   passwordHash!: string;
@@ -47,16 +47,16 @@ export class User {
   isVerified!: boolean;
 
   @Column("varchar", { name: 'email_verification_token', nullable: true })
-  emailVerificationToken!: string;
+  emailVerificationToken!: string | null;
 
   @Column("timestamp", { name: 'email_verification_expiry', nullable: true })
-  emailVerificationExpiry!: Date;
+  emailVerificationExpiry!: Date | null;
 
   @Column("boolean", { name: 'is_active', default: true })
   isActive!: boolean;
 
   @Column("varchar", { name: 'avatar_url', nullable: true })
-  avatarUrl!: string;
+  avatarUrl!: string | null;
 
   @CreateDateColumn({ type: "timestamp", name: 'created_at' })
   createdAt!: Date;

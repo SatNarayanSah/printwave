@@ -22,9 +22,9 @@ const VerifyEmailPage = () => {
         const response = await authApi.verifyEmail(token);
         setStatus('success');
         setMessage(response.message || 'Email verified successfully!');
-      } catch (err: any) {
+      } catch (err: unknown) {
         setStatus('error');
-        setMessage(err.message || 'Verification failed. The link may be expired or invalid.');
+        setMessage(err instanceof Error ? err.message : 'Verification failed. The link may be expired or invalid.');
       }
     };
     verify();

@@ -52,8 +52,8 @@ export class CustomDesign {
   createdAt!: Date;
 
   @OneToMany(() => CartItemDesign, (cid) => cid.design)
-  cartItemDesigns: CartItemDesign[];
+  cartItemDesigns!: CartItemDesign[];
 
   @OneToMany(() => OrderItemDesign, (oid) => oid.design)
-  orderItemDesigns: OrderItemDesign[];
+  orderItemDesigns!: OrderItemDesign[];
 }

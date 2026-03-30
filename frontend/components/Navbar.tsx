@@ -10,7 +10,12 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  interface User {
+    firstName: string;
+    lastName?: string;
+    role?: string;
+  }
+  const [user, setUser] = useState<User | null>(null);
   const [userLoading, setUserLoading] = useState(true);
 
   useEffect(() => {

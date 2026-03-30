@@ -67,9 +67,26 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
     const { name, description, slug, basePrice, fabric, gsm, isActive, isCustomizable, isFeatured, categoryId } = req.body;
     
     let category: Category | undefined = undefined;
+    const categoryRepo = AppDataSource.getRepository(Category);
+
     if (categoryId) {
-        const found = await AppDataSource.getRepository(Category).findOneBy({ id: categoryId });
+        const found = await categoryRepo.findOneBy({ id: categoryId });
         if (found) category = found;
+    }
+
+    if (!category) {
+        // Find or create default "Uncategorized" category
+        let defaultCategory = await categoryRepo.findOneBy({ slug: 'uncategorized' });
+        if (!defaultCategory) {
+            defaultCategory = categoryRepo.create({
+                name: 'Uncategorized',
+                slug: 'uncategorized',
+                description: 'Default category for products',
+                isActive: true
+            });
+            await categoryRepo.save(defaultCategory);
+        }
+        category = defaultCategory;
     }
 
     const productRepo = AppDataSource.getRepository(Product);
@@ -81,7 +98,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
     }
 
     const product = productRepo.create({
-      name, description, slug, basePrice, fabric: fabric || 'Cotton', gsm: gsm || 180, isActive, isCustomizable, isFeatured, category
+      name, description, slug, basePrice, fabric: fabric || 'Cotton', gsm: gsm || 180, isActive, isCustomizable, isFeatured, category, categoryId: category.id
     });
 
     const saved = await productRepo.save(product);

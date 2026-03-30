@@ -4,8 +4,17 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { productsApi } from '@/lib/api';
 
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  basePrice: number | string;
+  baseImage?: string;
+  category?: { name: string };
+}
+
 const ProductsPage = () => {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -26,8 +35,8 @@ const ProductsPage = () => {
         const response = await productsApi.getAll(1, 24, category);
         setProducts(response.data.items || []);
         setError(null);
-      } catch (err: any) {
-        setError(err.message || "Failed to load products");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load products");
       } finally {
         setLoading(false);
       }

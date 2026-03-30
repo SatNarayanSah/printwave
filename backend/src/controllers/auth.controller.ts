@@ -8,6 +8,7 @@ import { AppDataSource } from '../config/data-source.js';
 import { User } from '../entities/User.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
+import { AuthRequest } from '../middleware/authenticate.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -17,11 +18,20 @@ const COOKIE_OPTIONS = {
   path: '/',
 };
 
+const parseJwtExpiresIn = (value: string | undefined): jwt.SignOptions['expiresIn'] => {
+  if (!value) return '7d';
+  const trimmed = value.trim();
+  if (/^\d+$/.test(trimmed)) return Number(trimmed);
+  if (/^\d+(ms|s|m|h|d|w|y)$/.test(trimmed)) return trimmed as jwt.SignOptions['expiresIn'];
+  return '7d';
+};
+
 const generateTokens = (user: { id: string; role: string }) => {
+  const expiresIn = parseJwtExpiresIn(process.env.JWT_EXPIRES_IN);
   const accessToken = jwt.sign(
     { sub: user.id, role: user.role },
     process.env.JWT_SECRET!,
-    { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
+    { expiresIn }
   );
   return { accessToken };
 };
@@ -85,8 +95,9 @@ const sendVerificationEmail = async (user: User, token: string) => {
       `,
     });
     console.log(`✅ Verification email sent to ${user.email}`);
-  } catch (mailErr: any) {
-    console.error(`❌ Failed to send email to ${user.email}:`, mailErr.message);
+  } catch (mailErr: unknown) {
+    const message = mailErr instanceof Error ? mailErr.message : String(mailErr);
+    console.error(`❌ Failed to send email to ${user.email}:`, message);
     // Don't throw — registration still succeeded, user can use the console link
   }
 };
@@ -145,13 +156,13 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
     if (user.isVerified) {
       return res.json(ApiResponse.ok(null, 'Email already verified. You can log in.'));
     }
-    if (new Date() > user.emailVerificationExpiry) {
+    if (!user.emailVerificationExpiry || new Date() > user.emailVerificationExpiry) {
       throw ApiError.badRequest('Verification link has expired. Please register again or request a new link.');
     }
 
     user.isVerified = true;
-    user.emailVerificationToken = null as any;
-    user.emailVerificationExpiry = null as any;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpiry = null;
     await userRepo.save(user);
 
     return res.json(ApiResponse.ok(null, 'Email verified successfully! You can now log in.'));
@@ -194,12 +205,14 @@ export const logout = async (req: Request, res: Response) => {
   return res.json(ApiResponse.ok(null, 'Logged out successfully'));
 };
 
-export const getMe = async (req: Request, res: Response, next: NextFunction) => {
+export const getMe = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     // req.user is set by the auth middleware
+    if (!req.user) throw ApiError.unauthorized('Authentication required. Please log in.');
+
     const userRepo = AppDataSource.getRepository(User);
     const user = await userRepo.findOne({
-      where: { id: (req as any).user.sub },
+      where: { id: req.user.sub },
       select: ['id', 'email', 'firstName', 'lastName', 'role', 'avatarUrl', 'isVerified', 'createdAt']
     });
 

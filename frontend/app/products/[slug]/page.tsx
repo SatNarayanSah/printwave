@@ -5,9 +5,18 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { productsApi, cartApi } from '@/lib/api';
 
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: string | number;
+  baseImage?: string;
+  category?: { name: string };
+}
+
 const ProductDetailPage = () => {
   const { slug } = useParams();
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>('');
@@ -26,8 +35,8 @@ const ProductDetailPage = () => {
         if (data?.sizes?.length > 0) setSelectedSize(data.sizes[0]);
         if (data?.colors?.length > 0) setSelectedColor(data.colors[0].name);
         setError(null);
-      } catch (err: any) {
-        setError(err.message || "Failed to load product details");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load product details");
       } finally {
         setLoading(false);
       }
@@ -39,6 +48,7 @@ const ProductDetailPage = () => {
   const handleAddToCart = async () => {
     setAddingToCart(true);
     setSuccessMsg(null);
+    if (!product) return;
     try {
       await cartApi.addItem({
         productId: product.id,
@@ -47,8 +57,8 @@ const ProductDetailPage = () => {
       });
       setSuccessMsg("Added to your cart!");
       setTimeout(() => setSuccessMsg(null), 3000);
-    } catch (err: any) {
-      alert(err.message || "Please sign in to add items to your cart.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Please sign in to add items to your cart.");
     } finally {
       setAddingToCart(false);
     }

@@ -5,7 +5,15 @@ import Link from 'next/link';
 import { productsApi } from '@/lib/api';
 
 const Home = () => {
-   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+   interface FeaturedProduct {
+      id: string;
+      name: string;
+      slug: string;
+      basePrice: string | number;
+      baseImage?: string;
+      category?: { name: string };
+   }
+   const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>([]);
    const [loading, setLoading] = useState(true);
 
    useEffect(() => {

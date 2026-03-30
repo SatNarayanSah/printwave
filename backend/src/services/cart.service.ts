@@ -22,7 +22,21 @@ export const getOrCreateCart = async (userId: string) => {
   return cart;
 };
 
-export const addToCart = async (userId: string, data: any) => {
+interface AddToCartPayload {
+  variantId: string;
+  quantity: number;
+  notes?: string;
+  designs?: {
+    designId: string;
+    face: string;
+    scale?: number;
+    positionX?: number;
+    positionY?: number;
+    rotation?: number;
+  }[];
+}
+
+export const addToCart = async (userId: string, data: AddToCartPayload) => {
   const cart = await getOrCreateCart(userId);
   const variantRepo = AppDataSource.getRepository(ProductVariant);
   const variant = await variantRepo.findOne({
@@ -51,7 +65,7 @@ export const addToCart = async (userId: string, data: any) => {
   await cartItemRepo.save(cartItem);
 
   if (data.designs && data.designs.length > 0) {
-    const designs = data.designs.map((d: any) => cartItemDesignRepo.create({
+    const designs = data.designs.map((d: NonNullable<AddToCartPayload['designs']>[number]) => cartItemDesignRepo.create({
       cartItemId: cartItem.id,
       ...d
     }));

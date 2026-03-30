@@ -3,9 +3,25 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
 
+interface Stats {
+  totalRevenue: number | string;
+  totalOrders: number;
+  totalProducts: number;
+  totalDesigns: number;
+}
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  user?: { firstName?: string; lastName?: string; email?: string };
+  total: number | string;
+  createdAt: string;
+  status: string;
+}
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<any>(null);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -83,7 +99,7 @@ export default function AdminDashboard() {
                   <td colSpan={5} className="px-6 py-10 lg:px-8 text-center text-muted text-sm">No orders found.</td>
                 </tr>
               ) : (
-                recentOrders.map((order: any) => (
+                recentOrders.map((order: Order) => (
                   <tr key={order.id} className="hover:bg-secondary-bg/40 transition-colors">
                     <td className="px-6 py-4 lg:px-8 font-black text-main">{order.orderNumber}</td>
                     <td className="px-6 py-4 lg:px-8 text-muted">{order.user?.email || 'N/A'}</td>
