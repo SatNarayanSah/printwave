@@ -1,0 +1,53 @@
+# Monorepo ignore rules (ASP.NET + Node/Next + common tooling)
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*.tmp
+*.bak
+*.log
+
+# --- Environment / secrets ---
+.env*
+
+# --- IDEs ---
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# --- .NET / Visual Studio build outputs ---
+**/bin/
+**/obj/
+artifacts/
+TestResults/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+*.nuget.props
+*.nuget.targets
+NuGet.Config.user
+
+# --- Node / Next.js ---
+**/node_modules/
+**/.next/
+**/out/
+**/coverage/
+**/.pnp
+**/.pnp.*
+**/.turbo/
+**/.vercel/
+**/.cache/
+**/*.tsbuildinfo
+
+# --- Project-specific ---
+/backend/dist/
+/backend/logs/
+/backend/tmp/
