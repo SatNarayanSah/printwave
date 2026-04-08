@@ -1,13 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.Data;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using WebApplication1.Data;
-using WebApplication1.Entities;
+using WebApplication1.Model;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
@@ -15,53 +8,66 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        public AuthController(IConfiguration configuration)
-        {
-            
-            Configuration = configuration;
-        }
-        private static User? user = new();
+        private readonly IAuthService _authService;
 
-        public IConfiguration Configuration { get; }
+        public AuthController(IAuthService authService)
+        {
+            _authService = authService;
+        }
 
         [HttpPost("register")]
-        public ActionResult<User?>Register(UserDto request)
+        [Consumes("application/json")]
+        public async Task<ActionResult<UserResponseDto>> Register([FromBody] UserDto? request, CancellationToken cancellationToken)
         {
-            user.Username = request.Username;
-            user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.Password);
-            return Ok(user);
+            if (request is null)
+            {
+                return BadRequest("Request body is required. Send JSON with fields: email, password, firstName, lastName, phone.");
+            }
+
+            var result = await _authService.RegisterAsync(request, cancellationToken);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Error);
+            }
+
+            var user = result.Value!;
+            return Ok(new UserResponseDto(
+                user.Id,
+                user.Email,
+                user.FirstName,
+                user.LastName,
+                user.Phone,
+                user.IsActive,
+                user.CreatedAt,
+                user.LastLogin));
         }
 
+        [HttpPost("register")]
+        [Consumes("multipart/form-data", "application/x-www-form-urlencoded")]
+        public Task<ActionResult<UserResponseDto>> RegisterForm([FromForm] UserDto request, CancellationToken cancellationToken)
+            => Register(request, cancellationToken);
 
         [HttpPost("login")]
-        public ActionResult<String> Login(UserDto request)
+        [Consumes("application/json")]
+        public async Task<ActionResult<string>> Login([FromBody] UserDto? request, CancellationToken cancellationToken)
         {
-            if(user.Username != request.Username)
-                return BadRequest("User not found.");
-
-            if(new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
-                return BadRequest("Wrong password.");
-
-            string token = CreateToken(user);
-            return Ok(token);
-        }
-
-        private string CreateToken(User user)
-        {
-            var claims = new List<Claim>
+            if (request is null)
             {
-                new Claim(ClaimTypes.Name, user.Username)
-            };
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("AppSetting:Token")!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
-            var tokenDescriptor = new JwtSecurityToken(
-                issuer: Configuration.GetValue<string>("AppSetting:Issuer"),
-                audience: Configuration.GetValue<string>("AppSetting:Audience"),
-                claims: claims,
-                expires: DateTime.UtcNow.AddDays(1),
-                signingCredentials: creds
-                );
-            return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+                return BadRequest("Request body is required. Send JSON with fields: email, password.");
+            }
+
+            var result = await _authService.LoginAsync(request, cancellationToken);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok(result.Value);
         }
+
+        [HttpPost("login")]
+        [Consumes("multipart/form-data", "application/x-www-form-urlencoded")]
+        public Task<ActionResult<string>> LoginForm([FromForm] UserDto request, CancellationToken cancellationToken)
+            => Login(request, cancellationToken);
     }
 }

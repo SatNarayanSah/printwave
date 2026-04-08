@@ -1,97 +1,147 @@
-'use client';
-
 import Link from 'next/link';
-import React from 'react';
-import { usePathname } from 'next/navigation';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-const Footer = () => {
-    const pathname = usePathname();
-    if (pathname?.startsWith('/admin')) return null;
-
-    return (
-        <footer className="bg-white pt-20 pb-12 border-t border-divider relative overflow-hidden">
-            <div className="container-wide relative z-10 text-main">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-20">
-                    <div className="lg:col-span-5 space-y-8">
-                        <Link href="/" className="group flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-lg bg-main flex items-center justify-center shadow-premium group-hover:bg-black transition-colors">
-                                <span className="text-white text-xl font-black">P</span>
-                            </div>
-                            <div className="flex flex-col -space-y-0.5">
-                                <span className="text-xl font-black tracking-tighter">PrintWave</span>
-                                <span className="text-[8px] font-black text-muted uppercase tracking-[0.4em]">Essential Prints</span>
-                            </div>
-                        </Link>
-                        
-                        <p className="text-muted text-base leading-relaxed max-w-sm font-medium">
-                            Professional custom printing services for creators and businesses. We bring structural precision to every physical canvas.
-                        </p>
-                        
-                        <div className="flex items-center gap-2">
-                            {['TW', 'IG', 'FB', 'YT'].map((social) => (
-                                <a key={social} href="#" className="w-10 h-10 rounded-lg border border-divider flex items-center justify-center text-main hover:bg-main hover:text-white transition-all">
-                                    <span className="text-[10px] font-black">{social}</span>
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="lg:col-span-2 space-y-6">
-                        <h3 className="text-[10px] font-black text-main uppercase tracking-[0.3em] opacity-40">Collection</h3>
-                        <ul className="space-y-4">
-                            {['T-Shirts', 'Mugs', 'Posters', 'Stickers'].map((item) => (
-                                <li key={item}>
-                                    <Link href={`/products?category=${item.toLowerCase()}`} className="text-muted font-bold text-sm hover:text-main transition-colors inline-block">
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div className="lg:col-span-2 space-y-6">
-                        <h3 className="text-[10px] font-black text-main uppercase tracking-[0.3em] opacity-40">Support</h3>
-                        <ul className="space-y-4">
-                            {['Help Center', 'Shipping', 'Returns', 'Contact'].map((item) => (
-                                <li key={item}>
-                                    <Link href={`/${item.toLowerCase().replace(' ', '-')}`} className="text-muted font-bold text-sm hover:text-main transition-colors inline-block">
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div className="lg:col-span-3 space-y-6">
-                        <h3 className="text-[10px] font-black text-main uppercase tracking-[0.3em] opacity-40">Newsletter</h3>
-                        <p className="text-muted text-sm font-bold leading-relaxed">
-                            Join our inner circle for exclusive professional drops.
-                        </p>
-                        <form className="space-y-3">
-                            <input 
-                                type="email" 
-                                placeholder="Email address" 
-                                className="w-full px-5 py-3.5 rounded-xl bg-secondary-bg border-2 border-transparent focus:border-main text-sm font-bold transition-all outline-none"
-                            />
-                            <button className="w-full px-5 py-3.5 rounded-xl bg-main text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black transition-all shadow-premium">
-                                Subscribe
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <div className="pt-12 border-t border-divider flex flex-col md:flex-row justify-between items-center gap-6">
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">
-                        © {new Date().getFullYear()} PrintWave Studio. Built for Creators.
-                    </p>
-                    <div className="flex items-center gap-8">
-                        <Link href="/privacy" className="text-[10px] font-bold text-muted hover:text-main uppercase tracking-widest transition-colors">Privacy Information</Link>
-                        <Link href="/terms" className="text-[10px] font-bold text-muted hover:text-main uppercase tracking-widest transition-colors">Terms of Service</Link>
-                    </div>
-                </div>
+export function Footer() {
+  return (
+    <footer className="bg-primary text-primary-foreground">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          {/* Brand */}
+          <div>
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-primary-foreground rounded-lg flex items-center justify-center">
+                <span className="text-primary font-bold text-lg">PW</span>
+              </div>
+              <span className="font-bold text-lg">Printwave</span>
             </div>
-        </footer>
-    );
-};
+            <p className="text-sm text-primary-foreground/80 mb-4">
+              High-quality print-on-demand products for your business and creative needs.
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 text-sm">
+                <Phone className="w-4 h-4" />
+                <a href="tel:+1234567890" className="hover:underline">
+                  +1 (234) 567-890
+                </a>
+              </div>
+              <div className="flex items-center space-x-2 text-sm">
+                <Mail className="w-4 h-4" />
+                <a href="mailto:info@printwave.com" className="hover:underline">
+                  info@printwave.com
+                </a>
+              </div>
+              <div className="flex items-center space-x-2 text-sm">
+                <MapPin className="w-4 h-4" />
+                <span>123 Print Street, NY 10001</span>
+              </div>
+            </div>
+          </div>
 
-export default Footer;
+          {/* Quick Links */}
+          <div>
+            <h3 className="font-bold mb-4">Shop</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/shop" className="hover:underline">
+                  All Products
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=tshirts" className="hover:underline">
+                  T-Shirts
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=mugs" className="hover:underline">
+                  Mugs
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=hoodies" className="hover:underline">
+                  Hoodies
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=hats" className="hover:underline">
+                  Hats
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h3 className="font-bold mb-4">Company</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/blog" className="hover:underline">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <a href="#about" className="hover:underline">
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Terms of Service
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Contact
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h3 className="font-bold mb-4">Newsletter</h3>
+            <p className="text-sm text-primary-foreground/80 mb-4">
+              Subscribe to get special offers and updates.
+            </p>
+            <div className="flex flex-col space-y-2">
+              <Input
+                type="email"
+                placeholder="Your email"
+                className="bg-primary-foreground/20 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60"
+              />
+              <Button
+                size="sm"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 w-full"
+              >
+                Subscribe
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-primary-foreground/20 pt-8 flex flex-col sm:flex-row items-center justify-between">
+          <p className="text-sm text-primary-foreground/80">
+            &copy; 2024 Leo Printec. All rights reserved.
+          </p>
+          <div className="flex space-x-6 mt-4 sm:mt-0">
+            <a href="#" className="hover:underline text-sm">
+              Facebook
+            </a>
+            <a href="#" className="hover:underline text-sm">
+              Instagram
+            </a>
+            <a href="#" className="hover:underline text-sm">
+              Twitter
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}

@@ -1,37 +1,48 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import { CartProvider } from '@/lib/cartContext'
+import './globals.css'
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "PrintWave | Premium Custom Printing Services",
-  description: "Create unique custom designs for t-shirts, mugs, posters, and more with PrintWave's professional printing services. Calm, fast, and high quality.",
-  keywords: ["custom printing", "t-shirt design", "personalized gifts", "mugs", "posters", "stickers", "PrintWave"],
-  authors: [{ name: "PrintWave Team" }],
-  viewport: "width=device-width, initial-scale=1",
-};
+  title: 'Printwave - Print On Demand',
+  description: 'Custom print-on-demand products for your business. T-shirts, mugs, posters, and more with high-quality printing.',
+  generator: 'v0.app',
+  icons: {
+    icon: [
+      {
+        url: '/icon-light-32x32.png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/icon-dark-32x32.png',
+        media: '(prefers-color-scheme: dark)',
+      },
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    apple: '/apple-icon.png',
+  },
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased selection:bg-accent selection:text-white`}>
-      <body className="flex flex-col min-h-screen bg-primary-bg overflow-x-hidden">
-        <Navbar />
-        <main className="flex-grow pt-16">
+    <html lang="en">
+      <body className="font-sans antialiased">
+        <CartProvider>
           {children}
-        </main>
-        <Footer />
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </CartProvider>
       </body>
     </html>
-  );
+  )
 }
-
