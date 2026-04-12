@@ -174,3 +174,16 @@
 2026-04-13 00:00:38:038 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
 2026-04-13 00:05:29:529 [32minfo[39m: [32mDatabase connection established[39m
 2026-04-13 00:05:29:529 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-13 00:14:17:1417 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-13 00:14:17:1417 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-13 00:14:28:1428 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-13 00:14:28:1428 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-13 00:15:26:1526 [31merror[39m: [31mcolumn "monthnum" does not exist[39m
+2026-04-13 00:15:50:1550 [31merror[39m: [31mcolumn "monthnum" does not exist[39m
+2026-04-13 00:15:50:1550 [31merror[39m: [31mcolumn "monthnum" does not exist[39m
+2026-04-13 00:16:43:1643 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-13 00:16:43:1643 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-13 00:16:54:1654 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-13 00:16:54:1654 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-13 00:17:05:175 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-13 00:17:05:175 [32minfo[39m: [32mServer is running at http://localhost:5000[39m

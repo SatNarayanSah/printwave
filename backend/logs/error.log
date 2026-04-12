@@ -8,3 +8,6 @@
 2026-04-12 22:22:11:2211 [31merror[39m: [31mInitialization failed connect ECONNREFUSED 127.0.0.1:5432[39m
 2026-04-12 22:23:43:2343 [31merror[39m: [31mInitialization failed connect ECONNREFUSED 127.0.0.1:5432[39m
 2026-04-12 22:50:04:504 [31merror[39m: [31mInitialization failed database "printwave" does not exist[39m
+2026-04-13 00:15:26:1526 [31merror[39m: [31mcolumn "monthnum" does not exist[39m
+2026-04-13 00:15:50:1550 [31merror[39m: [31mcolumn "monthnum" does not exist[39m
+2026-04-13 00:15:50:1550 [31merror[39m: [31mcolumn "monthnum" does not exist[39m

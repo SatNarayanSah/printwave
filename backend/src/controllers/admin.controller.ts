@@ -22,18 +22,60 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
     const totalUsers = await userRepo.count();
     const totalDesigns = await designRepo.count();
 
-    // Query for total revenue (status != CANCELLED)
-    const { sum } = await orderRepo
-      .createQueryBuilder("order")
-      .select("SUM(order.total)", "sum")
-      .where("order.status != :status", { status: OrderStatus.CANCELLED })
+    // Total revenue (exclude cancelled)
+    const revenueRow = await orderRepo
+      .createQueryBuilder('o')
+      .select('COALESCE(SUM(o.total), 0)', 'sum')
+      .where('o.status != :status', { status: OrderStatus.CANCELLED })
       .getRawOne();
+    const totalRevenue = parseFloat(revenueRow?.sum) || 0;
 
+    // Order status breakdown
+    const statusBreakdown = await orderRepo
+      .createQueryBuilder('o')
+      .select('o.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('o.status')
+      .getRawMany();
+
+    // Monthly revenue for last 12 months — use a native query to avoid alias issues
+    const monthlyRevenueRaw: Array<{ month: string; monthnum: string; year: string; revenue: string; orders: string }> =
+      await AppDataSource.query(`
+        SELECT
+          TO_CHAR(created_at, 'Mon') AS month,
+          EXTRACT(MONTH FROM created_at)::int AS monthnum,
+          EXTRACT(YEAR FROM created_at)::int AS year,
+          COALESCE(SUM(total), 0) AS revenue,
+          COUNT(*) AS orders
+        FROM orders
+        WHERE status != $1
+          AND created_at >= NOW() - INTERVAL '12 months'
+        GROUP BY 1, 2, 3
+        ORDER BY 3 ASC, 2 ASC
+      `, [OrderStatus.CANCELLED]);
+
+    // Top 5 products by units sold — native query for clarity
+    const topProductsRaw: Array<{ productname: string; totalsold: string }> =
+      await AppDataSource.query(`
+        SELECT
+          p.name AS productname,
+          COALESCE(SUM(oi.quantity), 0) AS totalsold
+        FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
+        GROUP BY p.name
+        ORDER BY totalsold DESC
+        LIMIT 5
+      `);
+
+    // Recent 5 orders with relations
     const recentOrders = await orderRepo.find({
       order: { createdAt: 'DESC' },
       take: 5,
-      relations: ['user']
+      relations: ['user', 'items', 'items.product'],
     });
+
+    // Pending designs (not yet approved)
+    const pendingDesigns = await designRepo.count({ where: { isApproved: false } });
 
     res.json(ApiResponse.ok({
       stats: {
@@ -41,9 +83,20 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
         totalProducts,
         totalUsers,
         totalDesigns,
-        totalRevenue: sum || 0
+        totalRevenue,
+        pendingDesigns,
       },
-      recentOrders
+      statusBreakdown,
+      monthlyRevenue: monthlyRevenueRaw.map(m => ({
+        name: m.month,
+        revenue: parseFloat(m.revenue) || 0,
+        orders: parseInt(m.orders) || 0,
+      })),
+      topProducts: topProductsRaw.map(p => ({
+        name: p.productname || 'Unknown Product',
+        sales: parseInt(p.totalsold) || 0,
+      })),
+      recentOrders,
     }));
   } catch (error) {
     next(error);
