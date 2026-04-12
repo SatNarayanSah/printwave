@@ -1,0 +1,230 @@
+'use client';
+
+import * as React from 'react';
+import Link from 'next/link';
+import {
+  Palette,
+  CheckCircle2,
+  Clock,
+  ShoppingBag,
+  ArrowUpRight,
+  Loader2,
+  ImageIcon,
+  AlertTriangle,
+  Upload,
+} from 'lucide-react';
+import { designerApi } from '@/lib/api';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+const ORDER_STATUS_STYLES: Record<string, string> = {
+  PENDING: 'bg-amber-500/10 text-amber-500',
+  CONFIRMED: 'bg-blue-500/10 text-blue-500',
+  PRINTING: 'bg-indigo-500/10 text-indigo-500',
+  QUALITY_CHECK: 'bg-orange-500/10 text-orange-500',
+  SHIPPED: 'bg-purple-500/10 text-purple-500',
+  DELIVERED: 'bg-emerald-500/10 text-emerald-500',
+  CANCELLED: 'bg-destructive/10 text-destructive',
+};
+
+export default function DesignerDashboardPage() {
+  const [data, setData] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    designerApi.dashboard()
+      .then((res: any) => setData(res.data))
+      .catch(() => setError('Failed to load dashboard. Is the backend running?'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-3 text-muted-foreground">
+        <div className="h-10 w-10 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" />
+        <p className="font-medium text-sm">Loading your studio...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-3 text-destructive">
+        <AlertTriangle className="h-10 w-10 opacity-60" />
+        <p className="font-bold">{error}</p>
+      </div>
+    );
+  }
+
+  const stats = data?.stats || {};
+  const recentDesigns: any[] = data?.recentDesigns || [];
+  const recentOrders: any[] = data?.recentOrders || [];
+
+  const statCards = [
+    {
+      title: 'Total Designs',
+      value: stats.totalDesigns ?? 0,
+      sub: 'All uploaded artwork',
+      icon: Palette,
+      color: 'bg-orange-500/10 text-orange-500',
+    },
+    {
+      title: 'Approved',
+      value: stats.approvedDesigns ?? 0,
+      sub: 'Live & approved by admin',
+      icon: CheckCircle2,
+      color: 'bg-emerald-500/10 text-emerald-500',
+    },
+    {
+      title: 'Pending Review',
+      value: stats.pendingDesigns ?? 0,
+      sub: 'Awaiting admin approval',
+      icon: Clock,
+      color: 'bg-amber-500/10 text-amber-500',
+    },
+    {
+      title: 'Orders',
+      value: stats.ordersCount ?? 0,
+      sub: 'Orders using your designs',
+      icon: ShoppingBag,
+      color: 'bg-blue-500/10 text-blue-500',
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight">Designer Studio</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Track your designs, approvals, and orders at a glance.
+          </p>
+        </div>
+        <Link href="/designer/designs">
+          <Button className="gap-2 rounded-full font-bold px-6 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-lg shadow-orange-500/20 border-0">
+            <Upload className="h-4 w-4" />
+            Upload Design
+          </Button>
+        </Link>
+      </div>
+
+      {/* Stats */}
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((s) => (
+          <Card key={s.title} className="border-border/40 shadow-sm hover:shadow-md hover:border-orange-500/20 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{s.title}</CardTitle>
+              <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${s.color}`}>
+                <s.icon className="h-4 w-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black">{s.value}</div>
+              <p className="text-xs text-muted-foreground mt-1">{s.sub}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Recent content grid */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* Recent Designs */}
+        <Card className="lg:col-span-3 border-border/40 shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="text-base font-bold">Recent Uploads</CardTitle>
+              <CardDescription className="text-xs">Your latest design files.</CardDescription>
+            </div>
+            <Link href="/designer/designs">
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1 rounded-full">
+                View All <ArrowUpRight className="h-3 w-3" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {recentDesigns.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-36 text-muted-foreground text-sm gap-2">
+                <ImageIcon className="h-8 w-8 opacity-30" />
+                <span>No designs yet. Start uploading!</span>
+              </div>
+            ) : recentDesigns.map((d: any) => (
+              <div key={d.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/60 transition-colors">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <ImageIcon className="h-5 w-5 text-orange-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{d.name || 'Untitled Design'}</p>
+                  <p className="text-xs text-muted-foreground">{d.fileSizeKb} KB · {new Date(d.createdAt).toLocaleDateString()}</p>
+                </div>
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] font-bold border-none px-2 h-5 rounded-full flex-shrink-0 ${d.isApproved ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}
+                >
+                  {d.isApproved ? 'Approved' : 'Pending'}
+                </Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Recent Orders */}
+        <Card className="lg:col-span-2 border-border/40 shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="text-base font-bold">Recent Orders</CardTitle>
+              <CardDescription className="text-xs">Orders using your designs.</CardDescription>
+            </div>
+            <Link href="/designer/orders">
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1 rounded-full">
+                All <ArrowUpRight className="h-3 w-3" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {recentOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-36 text-muted-foreground text-sm gap-2">
+                <ShoppingBag className="h-8 w-8 opacity-30" />
+                <span>No orders with your designs yet.</span>
+              </div>
+            ) : recentOrders.map((o: any) => (
+              <div key={o.id} className="flex items-center justify-between gap-2 p-3 rounded-xl bg-muted/30 hover:bg-muted/60 transition-colors">
+                <div>
+                  <p className="font-mono font-bold text-xs text-primary">#{o.orderNumber || o.id?.slice(0, 8).toUpperCase()}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{o.designCount} design{o.designCount !== 1 ? 's' : ''}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-xs">रू {Number(o.total).toLocaleString()}</p>
+                  <Badge variant="outline" className={`mt-0.5 text-[9px] font-bold border-none px-2 h-4 rounded-full ${ORDER_STATUS_STYLES[o.status] || 'bg-muted text-muted-foreground'}`}>
+                    {o.status}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Approval guidance */}
+      {stats.pendingDesigns > 0 && (
+        <Card className="border-amber-500/30 bg-amber-500/5 shadow-sm">
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+              <Clock className="h-5 w-5 text-amber-500" />
+            </div>
+            <div>
+              <p className="font-bold text-sm">
+                {stats.pendingDesigns} design{stats.pendingDesigns !== 1 ? 's' : ''} awaiting admin review
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Designs must be approved before they appear in orders. This usually takes 1–2 business days.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

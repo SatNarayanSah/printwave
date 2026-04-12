@@ -48,8 +48,12 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   React.useEffect(() => {
-    if (!loading && (!user || String(user.role).toUpperCase() !== 'ADMIN')) {
-      router.push('/');
+    if (!loading) {
+      if (!user || String(user.role).toUpperCase() !== 'ADMIN') {
+        router.push('/');
+      } else if (user.mustChangePassword) {
+        router.push('/auth/onboarding');
+      }
     }
   }, [user, loading, router]);
 
@@ -64,7 +68,7 @@ export default function AdminLayout({
     );
   }
 
-  if (!user || String(user.role).toUpperCase() !== 'ADMIN') {
+  if (!user || String(user.role).toUpperCase() !== 'ADMIN' || user.mustChangePassword) {
     return null;
   }
 

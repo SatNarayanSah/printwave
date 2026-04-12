@@ -7,7 +7,7 @@ import { authApi } from '@/lib/api';
 type AuthState = {
   user: AuthUserDto | null;
   loading: boolean;
-  login: (payload: { email: string; password: string }) => Promise<{ mustChangePassword: boolean }>;
+  login: (payload: { email: string; password: string }) => Promise<{ mustChangePassword: boolean; data?: { user: AuthUserDto } }>;
   register: (payload: { email: string; password: string; firstName: string; lastName: string; phone?: string }) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -37,8 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (payload: { email: string; password: string }) => {
     const res = await authApi.login(payload);
     setUser(res.data.user);
-    // Explicitly cast or handle the response if types are not updated yet
-    return { mustChangePassword: (res as any).mustChangePassword || false };
+    return {
+      mustChangePassword: (res as any).mustChangePassword || res.data.user?.mustChangePassword || false,
+      data: res.data,
+    };
   }, []);
 
   const register = useCallback(

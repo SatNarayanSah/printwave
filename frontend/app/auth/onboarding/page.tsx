@@ -28,14 +28,10 @@ export default function OnboardingPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState(false);
 
-  // If user is already verified and onboarding is not required, redirect home
-  // In a real app, the refresh() would update the user state with mustChangePassword: false
-  // For now, we rely on the backend to enforce this.
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters for better security.');
       return;
     }
     if (password !== confirmPassword) {
@@ -48,10 +44,14 @@ export default function OnboardingPage() {
     try {
       await authApi.completeOnboarding({ password });
       setSuccess(true);
+      
       // Wait a moment then refresh auth state and redirect
       setTimeout(async () => {
-        await refresh();
-        router.push(user?.role === 'ADMIN' || user?.role === 'DESIGNER' ? '/admin' : '/');
+        const refreshedUser = await authApi.me().then(res => res.data.user);
+        const role = String(refreshedUser?.role || '').toUpperCase();
+        if (role === 'ADMIN') router.push('/admin');
+        else if (role === 'DESIGNER') router.push('/designer');
+        else router.push('/');
       }, 2000);
     } catch (err: any) {
       setError(err?.message || 'Failed to complete onboarding. Please try again.');
@@ -62,74 +62,78 @@ export default function OnboardingPage() {
 
   if (success) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] px-4 animate-in fade-in duration-700">
-        <Card className="w-full max-w-md border-border/40 shadow-2xl rounded-[2rem] text-center p-8 space-y-6">
+      <div className="flex items-center justify-center min-h-[80vh] px-4 animate-in fade-in duration-700">
+        <Card className="w-full max-w-md border-border/40 shadow-2xl rounded-[2.5rem] text-center p-12 space-y-6 bg-background/60 backdrop-blur-xl">
           <div className="flex justify-center">
-            <div className="h-20 w-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
-              <CheckCircle2 className="h-10 w-10" />
+            <div className="h-24 w-24 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce shadow-inner shadow-emerald-500/20">
+              <CheckCircle2 className="h-12 w-12" />
             </div>
           </div>
           <div className="space-y-2">
-            <CardTitle className="text-3xl font-black tracking-tight">Security Updated!</CardTitle>
-            <CardDescription className="text-base font-medium">Your password has been changed successfully. Redirecting you to your dashboard...</CardDescription>
+            <CardTitle className="text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">Secured!</CardTitle>
+            <CardDescription className="text-base font-semibold text-muted-foreground/80">Your password has been updated. One moment while we prepare your dashboard...</CardDescription>
           </div>
-          <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary opacity-50" />
+          <div className="flex justify-center pt-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
+          </div>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[70vh] px-4 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      <Card className="w-full max-w-md border-border/40 shadow-2xl rounded-[2.5rem] overflow-hidden bg-background/40 backdrop-blur-sm">
-        <CardHeader className="pt-10 pb-2 px-10 text-center space-y-3">
+    <div className="flex items-center justify-center min-h-[85vh] px-4 py-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,var(--primary-hover)_0%,transparent_25%),radial-gradient(circle_at_bottom_left,var(--accent)_0%,transparent_25%)] opacity-10" />
+      
+      <Card className="w-full max-w-md border-border/40 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] rounded-[3rem] overflow-hidden bg-background/60 backdrop-blur-2xl">
+        <CardHeader className="pt-12 pb-4 px-10 text-center space-y-4">
           <div className="flex justify-center mb-2">
-            <div className="p-4 bg-primary/10 rounded-3xl text-primary">
-              <ShieldCheck className="h-10 w-10" />
+            <div className="p-5 bg-primary/10 rounded-[2rem] text-primary shadow-inner shadow-primary/5 ring-1 ring-primary/20">
+              <ShieldCheck className="h-12 w-12" />
             </div>
           </div>
-          <div className="space-y-1">
-            <CardTitle className="text-3xl font-black tracking-tight">Set Secure Password</CardTitle>
-            <CardDescription className="text-sm font-medium px-4">
-              An administrator has created your account. To ensure security, please set a new custom password before continuing.
+          <div className="space-y-2">
+            <CardTitle className="text-4xl font-black tracking-tight leading-none bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent">Set Password</CardTitle>
+            <CardDescription className="text-sm font-bold text-muted-foreground/70 px-4 leading-relaxed">
+              Your account was created by an admin. Please set a custom password to continue safely.
             </CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="p-10 pt-6 space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-4">
+        
+        <CardContent className="p-10 pt-4 space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-5">
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">New Password</Label>
-                <div className="relative group">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                  <Input 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-11 h-12 bg-muted/40 border-none rounded-2xl font-bold focus-visible:ring-2 focus-visible:ring-primary/40 transition-all" 
-                    required
-                  />
-                </div>
+                <Label className="text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground/60 ml-1.5 flex items-center gap-2">
+                  <Lock className="h-3 w-3" /> New Password
+                </Label>
+                <Input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-14 bg-muted/30 border-border/40 rounded-2xl font-bold px-5 focus-visible:ring-offset-0 focus-visible:ring-primary/30 focus-visible:bg-background transition-all" 
+                  required
+                />
               </div>
+              
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Confirm Password</Label>
-                <div className="relative group">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                  <Input 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-11 h-12 bg-muted/40 border-none rounded-2xl font-bold focus-visible:ring-2 focus-visible:ring-primary/40 transition-all" 
-                    required
-                  />
-                </div>
+                <Label className="text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground/60 ml-1.5 flex items-center gap-2">
+                  <Lock className="h-3 w-3" /> Confirm Password
+                </Label>
+                <Input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="h-14 bg-muted/30 border-border/40 rounded-2xl font-bold px-5 focus-visible:ring-offset-0 focus-visible:ring-primary/30 focus-visible:bg-background transition-all" 
+                  required
+                />
               </div>
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 text-destructive text-xs font-bold animate-in shake-in">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-[11px] font-black uppercase tracking-tight animate-in shake-in">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>
@@ -137,19 +141,29 @@ export default function OnboardingPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] gap-2"
+              className="w-full h-16 rounded-[1.5rem] bg-foreground text-background hover:bg-foreground/90 font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-foreground/10 transition-all hover:scale-[1.01] active:scale-[0.99] gap-3"
               disabled={submitting}
             >
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-              {submitting ? 'Setting Password...' : 'Complete Onboarding'}
+              {submitting ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  Continue Studio
+                  <ArrowRight className="h-5 w-5" />
+                </>
+              )}
             </Button>
           </form>
 
-          <p className="text-[10px] text-center text-muted-foreground font-bold uppercase tracking-tighter opacity-70">
-            Professional Custom Printing · Persomith Security
+          <p className="text-[9px] text-center text-muted-foreground/40 font-black uppercase tracking-[0.3em]">
+            Professional Printing Studio · Secured Access
           </p>
         </CardContent>
       </Card>
     </div>
   );
 }
+

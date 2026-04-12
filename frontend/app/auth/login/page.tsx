@@ -23,9 +23,17 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const { mustChangePassword } = await login({ email, password });
-      if (mustChangePassword) {
+      const res = await login({ email, password });
+      if ((res as any).mustChangePassword || (res as any).data?.user?.mustChangePassword) {
         router.push('/auth/onboarding');
+        return;
+      }
+      // Role-based redirect
+      const role = String((res as any).data?.user?.role || '').toUpperCase();
+      if (role === 'ADMIN') {
+        router.push('/admin');
+      } else if (role === 'DESIGNER') {
+        router.push('/designer');
       } else {
         router.push('/');
       }

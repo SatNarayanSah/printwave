@@ -80,9 +80,11 @@ export type AuthUserDto = {
   email: string;
   firstName: string;
   lastName: string;
+  name?: string; // virtual: firstName + lastName
   role: string;
   avatarUrl: string | null;
   isVerified: boolean;
+  mustChangePassword?: boolean;
   createdAt: string;
 };
 

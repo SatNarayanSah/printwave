@@ -290,7 +290,7 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
     const userRepo = AppDataSource.getRepository(User);
     const user = await userRepo.findOne({
       where: { id: req.user.sub },
-      select: ['id', 'email', 'firstName', 'lastName', 'role', 'avatarUrl', 'isVerified', 'createdAt']
+      select: ['id', 'email', 'firstName', 'lastName', 'role', 'avatarUrl', 'isVerified', 'mustChangePassword', 'createdAt']
     });
 
     if (!user) throw ApiError.notFound('User not found');

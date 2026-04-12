@@ -126,3 +126,20 @@ export const adminApi = {
     apiDelete<null>(`/api/admin/users/${encodeURIComponent(id)}`),
   createDesignerAccount: (payload: any) => apiPost<unknown>('/api/admin/designers', payload),
 };
+
+// ---- Designer ----
+export const designerApi = {
+  dashboard: () => apiGet<unknown>('/api/designer/dashboard', undefined, { cache: 'no-store' }),
+  designs: () => apiGet<CustomDesignDto[]>('/api/designer/designs', undefined, { cache: 'no-store' }),
+  uploadDesign: (payload: { file: File; name?: string }) => {
+    const form = new FormData();
+    form.append('file', payload.file);
+    if (payload.name) form.append('name', payload.name);
+    return apiPost<CustomDesignDto>('/api/designer/designs', form);
+  },
+  deleteDesign: (id: string) => apiDelete<null>(`/api/designer/designs/${encodeURIComponent(id)}`),
+  orders: () => apiGet<unknown[]>('/api/designer/orders', undefined, { cache: 'no-store' }),
+  profile: () => apiGet<unknown>('/api/designer/profile', undefined, { cache: 'no-store' }),
+  updateProfile: (payload: { firstName?: string; lastName?: string; phone?: string }) =>
+    apiPut<unknown>('/api/designer/profile', payload),
+};
