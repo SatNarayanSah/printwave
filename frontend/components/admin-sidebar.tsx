@@ -135,7 +135,11 @@ export function AdminSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.url || pathname.startsWith(item.url + '/')}
+                    isActive={
+                      item.url === '/admin' 
+                        ? pathname === '/admin' 
+                        : pathname === item.url || pathname.startsWith(item.url + '/')
+                    }
                     tooltip={item.title}
                   >
                     <Link href={item.url}>

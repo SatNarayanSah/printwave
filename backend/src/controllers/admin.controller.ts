@@ -241,3 +241,63 @@ export const createDesignerAccount = async (req: Request, res: Response, next: N
     next(error);
   }
 };
+
+// --- USERS ---
+export const getAdminUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userRepo = AppDataSource.getRepository(User);
+    const users = await userRepo.find({
+      order: { createdAt: 'DESC' }
+    });
+    
+    // Omit sensitive data
+    const safeUsers = users.map(u => {
+      const { passwordHash, passwordResetTokenHash, ...safe } = u;
+      return safe;
+    });
+
+    res.json(ApiResponse.ok(safeUsers));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUserRole = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    
+    if(!Object.values(UserRole).includes(role)) {
+        throw ApiError.badRequest('Invalid user role');
+    }
+
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOneBy({ id });
+    if (!user) throw ApiError.notFound('User not found');
+
+    user.role = role;
+    await userRepo.save(user);
+
+    res.json(ApiResponse.ok({ id: user.id, role: user.role }, `User role updated to ${role}`));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUserStatus = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOneBy({ id });
+    if (!user) throw ApiError.notFound('User not found');
+
+    user.isActive = Boolean(isActive);
+    await userRepo.save(user);
+
+    res.json(ApiResponse.ok({ id: user.id, isActive: user.isActive }, `User is now ${isActive ? 'active' : 'suspended'}`));
+  } catch (error) {
+    next(error);
+  }
+};

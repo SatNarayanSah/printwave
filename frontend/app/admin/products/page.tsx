@@ -75,7 +75,7 @@ export default function ProductManagementPage() {
         </Card>
         <Card className="border-border/40 shadow-sm">
           <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-bold tracking-widest">Active Variants</CardTitle>
+            <CardDescription className="text-xs uppercase font-bold tracking-widest">Active Variants</CardDescription>
             <CardTitle className="text-3xl font-black">456</CardTitle>
           </CardHeader>
           <CardContent>

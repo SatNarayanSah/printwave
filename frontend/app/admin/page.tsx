@@ -11,8 +11,10 @@ import {
   ArrowDownRight,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 import {
   LineChart,
   Line,
@@ -92,6 +94,75 @@ const STAT_CARDS = [
 ];
 
 export default function AdminDashboardPage() {
+  const [data, setData] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    adminApi.dashboard()
+      .then((res) => {
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.error('Failed to load dashboard data', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p>Loading Dashboard Analytics...</p>
+      </div>
+    );
+  }
+
+  const statCardsData = [
+    { 
+      title: 'Total Revenue', 
+      value: `रू ${Number(data?.stats?.totalRevenue || 0).toLocaleString()}`, 
+      change: 'Lifetime Volume', 
+      trend: 'up', 
+      icon: ShoppingCart,
+      color: 'bg-blue-500/10 text-blue-500'
+    },
+    { 
+      title: 'Total Orders', 
+      value: data?.stats?.totalOrders || 0, 
+      change: 'Total Purchases', 
+      trend: 'none', 
+      icon: Clock,
+      color: 'bg-amber-500/10 text-amber-500'
+    },
+    { 
+      title: 'Total Customers', 
+      value: data?.stats?.totalUsers || 0, 
+      change: 'Registered Users', 
+      trend: 'none', 
+      icon: Users,
+      color: 'bg-emerald-500/10 text-emerald-500'
+    },
+    { 
+      title: 'Total Designs', 
+      value: data?.stats?.totalDesigns || 0, 
+      change: 'Uploaded Artworks', 
+      trend: 'none', 
+      icon: Palette,
+      color: 'bg-purple-500/10 text-purple-500'
+    },
+  ];
+
+  const recentOrdersRender = (data?.recentOrders || []).map((order: any) => ({
+    id: `#PW-${order.orderNumber || order.id.substring(0, 6).toUpperCase()}`,
+    customer: order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest',
+    date: new Date(order.createdAt).toLocaleDateString(),
+    amount: `रू ${Number(order.total).toLocaleString()}`,
+    status: order.status,
+    design: 'Custom Print'
+  }));
+
   return (
     <div className="space-y-8">
       <div>
@@ -100,7 +171,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {STAT_CARDS.map((stat) => (
+        {statCardsData.map((stat) => (
           <Card key={stat.title} className="border-border/40 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
@@ -239,7 +310,13 @@ export default function AdminDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {RECENT_ORDERS.map((order) => (
+              {recentOrdersRender.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    No recent orders found.
+                  </TableCell>
+                </TableRow>
+              ) : recentOrdersRender.map((order: any) => (
                 <TableRow key={order.id} className="hover:bg-muted/20 transition-colors">
                   <TableCell className="font-mono font-medium text-xs tracking-tighter">{order.id}</TableCell>
                   <TableCell className="font-semibold">{order.customer}</TableCell>
@@ -250,10 +327,11 @@ export default function AdminDashboardPage() {
                       variant="outline" 
                       className={`
                         border-none font-bold text-[10px] uppercase tracking-wider
-                        ${order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : ''}
-                        ${order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500' : ''}
-                        ${order.status === 'Shipped' ? 'bg-purple-500/10 text-purple-500' : ''}
-                        ${order.status === 'Delivered' ? 'bg-emerald-500/10 text-emerald-500' : ''}
+                        ${['PENDING', 'Pending'].includes(order.status) ? 'bg-amber-500/10 text-amber-500' : ''}
+                        ${['PROCESSING', 'Processing'].includes(order.status) ? 'bg-blue-500/10 text-blue-500' : ''}
+                        ${['SHIPPED', 'Shipped'].includes(order.status) ? 'bg-purple-500/10 text-purple-500' : ''}
+                        ${['DELIVERED', 'Delivered'].includes(order.status) ? 'bg-emerald-500/10 text-emerald-500' : ''}
+                        ${['CANCELLED', 'Cancelled'].includes(order.status) ? 'bg-destructive/10 text-destructive' : ''}
                       `}
                     >
                       {order.status}

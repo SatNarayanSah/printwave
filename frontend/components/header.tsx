@@ -98,7 +98,7 @@ export function Header() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <Link href="/account/dashboard">
+                      <Link href={user.role?.toLowerCase() === 'admin' ? '/admin' : '/account/dashboard'}>
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         <span>Dashboard</span>
                       </Link>

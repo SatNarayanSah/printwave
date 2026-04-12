@@ -32,7 +32,7 @@ TestResults/
 project.lock.json
 project.fragment.lock.json
 *.nuget.props
-*.nuget.targets
+*.nuget.targets\
 NuGet.Config.user
 node_modules
 # --- Node / Next.js ---
