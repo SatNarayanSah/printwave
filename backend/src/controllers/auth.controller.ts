@@ -1,4 +1,4 @@
-﻿// src/controllers/auth.controller.ts
+// src/controllers/auth.controller.ts
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -44,7 +44,7 @@ const getFrontendBaseUrl = () =>
 
 
 
-const sendVerificationEmail = async (user: User, token: string) => {
+export const sendVerificationEmail = async (user: User, token: string) => {
   const baseUrl = getFrontendBaseUrl();
   const link = `${baseUrl}/auth/verify-email?token=${token}`;
   const logoUrl = `${baseUrl}/logo.png`;
@@ -268,7 +268,10 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       ...safeUser
     } = user;
 
-    return res.json(ApiResponse.ok({ user: safeUser }, 'Login successful'));
+    return res.json(ApiResponse.ok({ 
+      user: safeUser,
+      mustChangePassword: user.mustChangePassword 
+    }, 'Login successful'));
   } catch (err) {
     next(err);
   }
@@ -353,3 +356,25 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
   }
 };
 
+export const completeOnboarding = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) throw ApiError.unauthorized('Authentication required');
+    const { password } = req.body;
+
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOneBy({ id: req.user.id });
+
+    if (!user) throw ApiError.notFound('User not found');
+    if (!user.mustChangePassword) {
+      throw ApiError.badRequest('Onboarding already complete or not required');
+    }
+
+    user.passwordHash = await bcrypt.hash(password, 12);
+    user.mustChangePassword = false;
+    await userRepo.save(user);
+
+    return res.json(ApiResponse.ok(null, 'Onboarding complete! Your password has been updated.'));
+  } catch (err) {
+    next(err);
+  }
+};

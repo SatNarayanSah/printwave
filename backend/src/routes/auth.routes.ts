@@ -1,5 +1,5 @@
-﻿import { Router } from 'express';
-import { register, login, logout, verifyEmail, getMe, forgotPassword, resetPassword } from '../controllers/auth.controller.js';
+import { Router } from 'express';
+import { register, login, logout, verifyEmail, getMe, forgotPassword, resetPassword, completeOnboarding } from '../controllers/auth.controller.js';
 import { validate } from '../middleware/validate.js';
 import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../validators/auth.validator.js';
 import { authenticate } from '../middleware/authenticate.js';
@@ -12,6 +12,7 @@ router.post('/logout', logout);
 router.get('/verify-email', verifyEmail);
 router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
 router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
+router.post('/onboarding', authenticate, completeOnboarding);
 router.get('/me', authenticate, getMe);
 
 // Dev-only: Test SMTP connection

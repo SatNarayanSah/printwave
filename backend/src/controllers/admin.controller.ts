@@ -10,6 +10,8 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import { OrderStatus, UserRole, CouponType } from '../types/enums.js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { sendVerificationEmail } from './auth.controller.js';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -268,6 +270,9 @@ export const createDesignerAccount = async (req: Request, res: Response, next: N
     if (existing) throw ApiError.conflict('An account with this email already exists');
 
     const passwordHash = await bcrypt.hash(password, 12);
+    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+    const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
     const user = userRepo.create({
       email: normalizedEmail,
       phone: normalizedPhone,
@@ -275,17 +280,24 @@ export const createDesignerAccount = async (req: Request, res: Response, next: N
       firstName,
       lastName,
       role: UserRole.DESIGNER,
-      isVerified: true,
-      emailVerificationToken: null,
-      emailVerificationExpiry: null,
+      isVerified: false,
+      emailVerificationToken,
+      emailVerificationExpiry,
       isActive: true,
+      mustChangePassword: true,
     });
 
     const saved = await userRepo.save(user);
+
+    // Send verification email (non-blocking)
+    sendVerificationEmail(saved, emailVerificationToken).catch(err =>
+      console.error('Failed to send verification email to designer:', err)
+    );
+
     const {
       passwordHash: _pw,
-      emailVerificationToken,
-      emailVerificationExpiry,
+      emailVerificationToken: _evt,
+      emailVerificationExpiry: _eve,
       passwordResetTokenHash,
       passwordResetExpiry,
       ...safeUser
@@ -362,6 +374,20 @@ export const updateUserStatus = async (req: Request, res: Response, next: NextFu
   }
 };
 
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOneBy({ id });
+    if (!user) throw ApiError.notFound('User not found');
+    if (user.role === UserRole.ADMIN) throw ApiError.forbidden('Cannot delete an admin account');
+
+    await userRepo.remove(user);
+    res.json(ApiResponse.ok(null, 'User permanently deleted'));
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const updateDesignStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {

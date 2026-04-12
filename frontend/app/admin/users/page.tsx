@@ -2,25 +2,21 @@
 
 import * as React from 'react';
 import { 
-  Users, 
   Search, 
   Filter, 
   MoreHorizontal, 
   UserPlus,
-  Mail,
   ShieldCheck,
   Ban,
-  Pencil,
   Loader2,
   CheckCircle2,
-  X,
   Plus,
-  TrendingUp,
-  Briefcase
+  Briefcase,
+  Trash2,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -42,10 +38,25 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // --- Add User Modal ---
 function AddUserModal({ open, onClose, onSave }: { open: boolean; onClose: () => void; onSave: (data: any) => Promise<void> }) {
@@ -73,18 +84,12 @@ function AddUserModal({ open, onClose, onSave }: { open: boolean; onClose: () =>
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/40 backdrop-blur-md animate-in fade-in duration-200" onClick={onClose}>
-      <div 
-        className="bg-background border border-border/40 rounded-xl shadow-xl w-full max-w-md p-6 space-y-4 animate-in zoom-in-95 duration-200" 
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black">Add Staff Account</h2>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={onClose}><X className="h-4 w-4" /></Button>
-        </div>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-md p-6 space-y-4 rounded-xl shadow-2xl border-border/40 backdrop-blur-3xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-black">Add Staff Account</DialogTitle>
+        </DialogHeader>
 
         {error && <p className="text-[11px] text-destructive bg-destructive/10 px-3 py-2 rounded-lg font-bold">{error}</p>}
 
@@ -120,8 +125,8 @@ function AddUserModal({ open, onClose, onSave }: { open: boolean; onClose: () =>
             {saving ? 'Creating...' : 'Create Account'}
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -131,6 +136,8 @@ export default function UserManagementPage() {
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState('');
   const [showAddModal, setShowAddModal] = React.useState(false);
+  const [deleteTarget, setDeleteTarget] = React.useState<any | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
 
   React.useEffect(() => { fetchUsers(); }, []);
 
@@ -157,14 +164,20 @@ export default function UserManagementPage() {
   };
 
   const handleAddDesigner = async (data: any) => {
-    const res = await fetch('/api/admin/designers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    const result = await res.json();
-    if (!result.success) throw new Error(result.message);
+    const res = await adminApi.createDesignerAccount(data);
+    if (!res.success) throw new Error(res.message);
     fetchUsers();
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await adminApi.deleteUser(deleteTarget.id);
+      setDeleteTarget(null);
+      fetchUsers();
+    } catch (e) { console.error(e); }
+    finally { setDeleting(false); }
   };
 
   const filteredUsers = usersList.filter(user => {
@@ -176,6 +189,29 @@ export default function UserManagementPage() {
   return (
     <>
       <AddUserModal open={showAddModal} onClose={() => setShowAddModal(false)} onSave={handleAddDesigner} />
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <AlertDialogContent className="rounded-xl border-border/40">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-black text-lg">Delete user permanently?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-muted-foreground">
+              This will permanently remove <span className="font-bold text-foreground">{deleteTarget?.firstName} {deleteTarget?.lastName}</span> ({deleteTarget?.email}) and all their data from the database. This action <span className="font-bold text-destructive">cannot be undone</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-full font-bold text-xs h-9">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={deleting}
+              className="rounded-full font-bold text-xs h-9 bg-destructive hover:bg-destructive/90 text-destructive-foreground gap-2"
+            >
+              {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+              {deleting ? 'Deleting...' : 'Delete permanently'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="space-y-6 animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -262,9 +298,9 @@ export default function UserManagementPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
-                        <div className={`h-1.5 w-1.5 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-destructive'}`} />
-                        <span className={`text-[11px] font-bold ${user.isActive ? 'text-emerald-500' : 'text-destructive'}`}>
-                          {user.isActive ? 'Active' : 'Locked'}
+                        <div className={`h-1.5 w-1.5 rounded-full ${!user.isVerified ? 'bg-amber-500 animate-pulse' : user.isActive ? 'bg-emerald-500' : 'bg-destructive'}`} />
+                        <span className={`text-[11px] font-bold ${!user.isVerified ? 'text-amber-500' : user.isActive ? 'text-emerald-500' : 'text-destructive'}`}>
+                          {!user.isVerified ? 'Verification Pending' : user.isActive ? 'Active' : 'Locked'}
                         </span>
                       </div>
                     </TableCell>
@@ -298,6 +334,17 @@ export default function UserManagementPage() {
                           <DropdownMenuItem className="gap-2 rounded-lg py-1.5 text-xs text-destructive font-bold focus:bg-destructive/10" onClick={() => toggleUserStatus(user)}>
                             {user.isActive ? <><Ban className="h-3.5 w-3.5" /> Suspend</> : <><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Activate</>}
                           </DropdownMenuItem>
+                          {user.role !== 'ADMIN' && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="gap-2 rounded-lg py-1.5 text-xs text-destructive font-black focus:bg-destructive/10"
+                                onClick={() => setDeleteTarget(user)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" /> Delete user
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

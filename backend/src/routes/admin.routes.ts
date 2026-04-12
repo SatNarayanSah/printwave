@@ -5,7 +5,7 @@ import {
     getAdminOrders, updateOrderStatus,
     getAdminDesigns, updateDesignStatus,
     createDesignerAccount,
-    getAdminUsers, updateUserRole, updateUserStatus,
+    getAdminUsers, updateUserRole, updateUserStatus, deleteUser,
     getAdminCoupons, createCoupon, updateCoupon, deleteCoupon,
 } from '../controllers/admin.controller.js';
 import { authenticate, authorize } from '../middleware/authenticate.js';
@@ -34,6 +34,7 @@ router.post('/designers', validate(createDesignerSchema), createDesignerAccount)
 router.get('/users', getAdminUsers);
 router.put('/users/:id/role', updateUserRole);
 router.put('/users/:id/status', updateUserStatus);
+router.delete('/users/:id', deleteUser);
 
 // Coupon / Marketing
 router.get('/coupons', getAdminCoupons);

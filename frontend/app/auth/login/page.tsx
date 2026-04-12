@@ -23,8 +23,12 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await login({ email, password });
-      router.push('/');
+      const { mustChangePassword } = await login({ email, password });
+      if (mustChangePassword) {
+        router.push('/auth/onboarding');
+      } else {
+        router.push('/');
+      }
     } catch (err: any) {
       setError(err?.message ?? 'Login failed');
     } finally {

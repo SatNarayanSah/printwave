@@ -61,6 +61,9 @@ export class User {
   @Column("boolean", { name: 'is_active', default: true })
   isActive!: boolean;
 
+  @Column("boolean", { name: 'must_change_password', default: false })
+  mustChangePassword!: boolean;
+
   @Column("varchar", { name: 'avatar_url', nullable: true })
   avatarUrl!: string | null;
 

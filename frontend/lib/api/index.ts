@@ -22,6 +22,7 @@ export const authApi = {
   verifyEmail: (token: string) => apiGet<null>('/api/auth/verify-email', { token }),
   forgotPassword: (payload: { email: string }) => apiPost<null>('/api/auth/forgot-password', payload),
   resetPassword: (payload: { token: string; password: string }) => apiPost<null>('/api/auth/reset-password', payload),
+  completeOnboarding: (payload: { password: string }) => apiPost<null>('/api/auth/onboarding', payload),
 };
 
 // ---- Catalog ----
@@ -121,4 +122,7 @@ export const adminApi = {
     apiPut<unknown>(`/api/admin/users/${encodeURIComponent(id)}/role`, payload),
   updateUserStatus: (id: string, payload: { isActive: boolean }) =>
     apiPut<unknown>(`/api/admin/users/${encodeURIComponent(id)}/status`, payload),
+  deleteUser: (id: string) =>
+    apiDelete<null>(`/api/admin/users/${encodeURIComponent(id)}`),
+  createDesignerAccount: (payload: any) => apiPost<unknown>('/api/admin/designers', payload),
 };

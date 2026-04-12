@@ -7,13 +7,19 @@ import { categoriesApi, productsApi } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default async function Home() {
-  const [categoriesRes, productsRes] = await Promise.all([
-    categoriesApi.list(),
-    productsApi.list({ page: 1, limit: 6 }),
-  ]);
+  let categories: Awaited<ReturnType<typeof categoriesApi.list>>['data'] = [];
+  let featuredProducts: Awaited<ReturnType<typeof productsApi.list>>['data'] = [];
 
-  const categories = categoriesRes.data ?? [];
-  const featuredProducts = productsRes.data ?? [];
+  try {
+    const [categoriesRes, productsRes] = await Promise.all([
+      categoriesApi.list(),
+      productsApi.list({ page: 1, limit: 6 }),
+    ]);
+    categories = categoriesRes.data ?? [];
+    featuredProducts = productsRes.data ?? [];
+  } catch {
+    // Backend is unreachable; render the page with empty data
+  }
 
   const categoryFallbackImage = (slug: string) => {
     const map: Record<string, string> = {
