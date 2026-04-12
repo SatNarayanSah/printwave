@@ -26,11 +26,11 @@ export const createServer = () => {
   // Welcome Route
   app.get('/', (_req, res) => {
     res.json(ApiResponse.ok({ 
-      name: 'PrintWave API', 
+      name: 'Persomith API', 
       version: '1.0.0', 
       documentation: '/docs',
       health: '/health' 
-    }, 'Welcome to PrintWave API'));
+    }, 'Welcome to Persomith API'));
   });
 
   // Health check

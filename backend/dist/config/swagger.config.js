@@ -4,11 +4,11 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'PrintWave API Documentation',
+            title: 'Persomith API Documentation',
             version: '1.0.0',
-            description: 'API documentation for PrintWave E-commerce platform',
+            description: 'API documentation for Persomith E-commerce platform',
             contact: {
-                name: 'PrintWave Support',
+                name: 'Persomith Support',
             },
         },
         servers: [

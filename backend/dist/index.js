@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { AppDataSource } from "./config/data-source.js";
 import { createServer } from "./server.js";
 import { logger } from "./utils/logger.js";
+import { ensureDefaultAdmin } from "./seed/ensureDefaultAdmin.js";
 dotenv.config();
 const port = process.env.PORT || 5000;
 const startServer = async () => {
@@ -11,6 +12,7 @@ const startServer = async () => {
         // Database initialization
         await AppDataSource.initialize();
         logger.info("Database connection established");
+        await ensureDefaultAdmin();
         // Server start
         const app = createServer();
         app.listen(port, () => {

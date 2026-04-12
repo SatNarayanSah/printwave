@@ -1,7 +1,7 @@
 {
   "name": "printwave-api",
   "version": "1.0.0",
-  "description": "Backend API for PrintWave",
+  "description": "Backend API for Persomith",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

@@ -1,6 +1,8 @@
 import { Router } from 'express';
-import { getDashboardStats, getAdminProducts, createProduct, updateProduct, deleteProduct, getAdminOrders, updateOrderStatus, getAdminDesigns } from '../controllers/admin.controller.js';
+import { getDashboardStats, getAdminProducts, createProduct, updateProduct, deleteProduct, getAdminOrders, updateOrderStatus, getAdminDesigns, createDesignerAccount } from '../controllers/admin.controller.js';
 import { authenticate, authorize } from '../middleware/authenticate.js';
+import { validate } from '../middleware/validate.js';
+import { createDesignerSchema } from '../validators/admin.validator.js';
 const router = Router();
 // All routes require ADMIN access
 router.use(authenticate, authorize('ADMIN'));
@@ -12,4 +14,5 @@ router.delete('/products/:id', deleteProduct);
 router.get('/orders', getAdminOrders);
 router.put('/orders/:id/status', updateOrderStatus);
 router.get('/designs', getAdminDesigns);
+router.post('/designers', validate(createDesignerSchema), createDesignerAccount);
 export default router;

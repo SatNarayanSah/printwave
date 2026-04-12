@@ -48,7 +48,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Create account</CardTitle>
-          <CardDescription>Get started with PrintWave.</CardDescription>
+          <CardDescription>Get started with Persomith.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {done ? (

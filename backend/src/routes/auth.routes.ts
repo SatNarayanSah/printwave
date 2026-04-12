@@ -1,4 +1,4 @@
-import { Router, Request } from 'express';
+﻿import { Router } from 'express';
 import { register, login, logout, verifyEmail, getMe, forgotPassword, resetPassword } from '../controllers/auth.controller.js';
 import { validate } from '../middleware/validate.js';
 import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../validators/auth.validator.js';
@@ -29,9 +29,9 @@ if (process.env.NODE_ENV !== 'production') {
     try {
       await transporter.verify();
       await transporter.sendMail({
-        from: `"PrintWave Test" <${process.env.SMTP_USER}>`,
+        from: `"Persomith Test" <${process.env.SMTP_USER}>`,
         to,
-        subject: 'PrintWave SMTP Test ✓',
+        subject: 'Persomith SMTP Test ✓',
         html: '<h2>SMTP is working correctly!</h2><p>If you receive this, your email configuration is valid.</p>',
       });
       res.json({ ok: true, message: `Test email sent to ${to}` });
@@ -39,24 +39,8 @@ if (process.env.NODE_ENV !== 'production') {
       res.status(500).json({ ok: false, error: err instanceof Error ? err.message : 'failed' });
     }
   });
-
-  router.get('/make-me-admin', authenticate, async (req: Request & { user?: { id: string } }, res) => {
-    try {
-      const { AppDataSource } = await import('../config/data-source.js');
-      const { User } = await import('../entities/User.js');
-      const userRepo = AppDataSource.getRepository(User);
-      // @ts-ignore
-      const user = await userRepo.findOneBy({ id: req.user?.id });
-      if(user) {
-        // @ts-ignore
-        user.role = 'ADMIN';
-        await userRepo.save(user);
-        res.json({ ok: true, message: 'You are now an Admin! Please sign in again.' });
-      }
-    } catch(err: unknown){
-      res.status(500).json({ ok: false, error: err instanceof Error ? err.message : 'failed' });
-    }
-  });
 }
 
 export default router;
+
+

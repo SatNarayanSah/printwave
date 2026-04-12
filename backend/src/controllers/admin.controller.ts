@@ -7,7 +7,8 @@ import { User } from '../entities/User.js';
 import { Category } from '../entities/Category.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
-import { OrderStatus } from '../types/enums.js';
+import { OrderStatus, UserRole } from '../types/enums.js';
+import bcrypt from 'bcryptjs';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -192,4 +193,51 @@ export const getAdminDesigns = async (req: Request, res: Response, next: NextFun
     } catch (error) {
       next(error);
     }
+};
+
+export const createDesignerAccount = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email, password, firstName, lastName, phone } = req.body as {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      phone?: string;
+    };
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedPhone = phone ? String(phone).trim() : null;
+
+    const userRepo = AppDataSource.getRepository(User);
+    const existing = await userRepo.findOneBy({ email: normalizedEmail });
+    if (existing) throw ApiError.conflict('An account with this email already exists');
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = userRepo.create({
+      email: normalizedEmail,
+      phone: normalizedPhone,
+      passwordHash,
+      firstName,
+      lastName,
+      role: UserRole.DESIGNER,
+      isVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpiry: null,
+      isActive: true,
+    });
+
+    const saved = await userRepo.save(user);
+    const {
+      passwordHash: _pw,
+      emailVerificationToken,
+      emailVerificationExpiry,
+      passwordResetTokenHash,
+      passwordResetExpiry,
+      ...safeUser
+    } = saved;
+
+    return res.status(201).json(ApiResponse.created({ user: safeUser }, 'Designer account created'));
+  } catch (error) {
+    next(error);
+  }
 };

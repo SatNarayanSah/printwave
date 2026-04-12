@@ -8,7 +8,7 @@ import { Footer } from '@/components/footer'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Printwave - Print On Demand',
+  title: 'Persomith - Print On Demand',
   description: 'Custom print-on-demand products for your business. T-shirts, mugs, posters, and more with high-quality printing.',
   generator: 'v0.app',
   icons: {

@@ -31,7 +31,7 @@ export function Header() {
             <div className="h-9 w-9 rounded-xl bg-background/70 ring-1 ring-border/40 shadow-sm overflow-hidden">
               <Image
                 src="/logo.png"
-                alt="PrintWave"
+                alt="Persomith"
                 width={36}
                 height={36}
                 className="h-full w-full object-contain"
@@ -39,7 +39,7 @@ export function Header() {
               />
             </div>
             <div className="hidden sm:block leading-tight">
-              <div className="font-black text-lg tracking-tight text-foreground">PrintWave</div>
+              <div className="font-black text-lg tracking-tight text-foreground">Persomith</div>
               <div className="text-[11px] text-muted-foreground -mt-0.5">Studio-quality printing</div>
             </div>
           </Link>

@@ -1,4 +1,4 @@
-# PrintWave — Database Schema & Backend Architecture
+﻿# Persomith — Database Schema & Backend Architecture
 
 ---
 
@@ -797,3 +797,4 @@ POST   /api/payments/esewa/verify     Verify eSewa payment (callback)
 POST   /api/payments/khalti/initiate  Initiate Khalti payment
 POST   /api/payments/khalti/verify    Verify Khalti payment
 ```
+

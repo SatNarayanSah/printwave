@@ -1,10 +1,10 @@
-# Printwave - Next.js E-Commerce Clone
+# Persomith - Next.js E-Commerce Platform
 
 A complete print-on-demand e-commerce website built with Next.js 15, React, Tailwind CSS, and TypeScript.
 
 ## Project Overview
 
-Printwave is a fully functional e-commerce platform for print-on-demand products including t-shirts, mugs, hoodies, hats, posters, and tote bags. The site features a modern, professional design with responsive layouts optimized for all devices. Built with a sophisticated blue and green color theme for a contemporary aesthetic.
+Persomith is a fully functional e-commerce platform for print-on-demand products including t-shirts, mugs, hoodies, hats, posters, and tote bags. The site features a modern, professional design with responsive layouts optimized for all devices. Built with a sophisticated blue and green color theme for a contemporary aesthetic.
 
 ## Key Features
 

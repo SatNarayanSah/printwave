@@ -34,7 +34,7 @@ export default async function Home() {
         <div className="absolute inset-0 -z-10">
           <Image
             src="/images/hero-banner.jpg"
-            alt="PrintWave"
+            alt="Persomith"
             fill
             className="object-cover opacity-25"
             priority
@@ -237,7 +237,7 @@ export default async function Home() {
                   </div>
                 </div>
                 <div className="md:col-span-5 relative min-h-52">
-                  <Image src="/images/blog-2.jpg" alt="PrintWave" fill className="object-cover opacity-80" />
+                  <Image src="/images/blog-2.jpg" alt="Persomith" fill className="object-cover opacity-80" />
                   <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-black/10 to-transparent" />
                 </div>
               </div>

@@ -111,7 +111,7 @@ export default function BlogPage() {
                   </div>
                 </div>
                 <div className="md:col-span-5 relative min-h-44">
-                  <Image src="/images/blog-3.jpg" alt="PrintWave" fill className="object-cover opacity-80" />
+                  <Image src="/images/blog-3.jpg" alt="Persomith" fill className="object-cover opacity-80" />
                   <div className="absolute inset-0 bg-gradient-to-tr from-black/35 via-black/10 to-transparent" />
                 </div>
               </div>
@@ -122,4 +122,3 @@ export default function BlogPage() {
     </div>
   );
 }
-

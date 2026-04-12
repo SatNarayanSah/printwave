@@ -15,13 +15,13 @@ export function Footer() {
               <div className="h-9 w-9 rounded-xl bg-background/70 ring-1 ring-border/40 shadow-sm overflow-hidden">
                 <Image
                   src="/logo.png"
-                  alt="PrintWave"
+                  alt="Persomith"
                   width={36}
                   height={36}
                   className="h-full w-full object-contain"
                 />
               </div>
-              <span className="font-black text-lg tracking-tight">PrintWave</span>
+              <span className="font-black text-lg tracking-tight">Persomith</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               High-quality print-on-demand products for your business and creative needs.
@@ -134,7 +134,7 @@ export function Footer() {
 
         <div className="border-t border-border/60 pt-8 flex flex-col sm:flex-row items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} PrintWave. All rights reserved.
+            &copy; {new Date().getFullYear()} Persomith. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 sm:mt-0">
             <a href="#" className="hover:underline text-sm">

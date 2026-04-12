@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { AppDataSource } from '../config/data-source.js';
 import { User } from '../entities/User.js';
+import { UserRole } from '../types/enums.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 const COOKIE_OPTIONS = {
@@ -60,14 +61,14 @@ const sendVerificationEmail = async (user, token) => {
     });
     try {
         await transporter.sendMail({
-            from: `"PrintWave Studio" <${smtpUser}>`,
+            from: `"Persomith" <${smtpUser}>`,
             to: user.email,
-            subject: 'Verify your PrintWave account',
+            subject: 'Verify your Persomith account',
             html: `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px;">
           <div style="text-align: center; margin-bottom: 32px;">
-            <img src="${logoUrl}" alt="PrintWave" width="64" height="64" style="display:block;margin:0 auto 12px;" />
-            <h1 style="color: #1E293B; font-size: 22px; font-weight: 800; margin: 16px 0 8px;">Welcome to PrintWave!</h1>
+            <img src="${logoUrl}" alt="Persomith" width="64" height="64" style="display:block;margin:0 auto 12px;" />
+            <h1 style="color: #1E293B; font-size: 22px; font-weight: 800; margin: 16px 0 8px;">Welcome to Persomith!</h1>
             <p style="color: #64748B; font-size: 15px; margin: 0;">Hi ${user.firstName}, please verify your email to activate your account.</p>
           </div>
           <div style="text-align: center; margin: 32px 0;">
@@ -76,9 +77,9 @@ const sendVerificationEmail = async (user, token) => {
             </a>
           </div>
           <p style="color: #64748B; font-size: 13px; text-align: center; margin: 0 0 8px;">This link expires in <strong>24 hours</strong>.</p>
-          <p style="color: #94A3B8; font-size: 12px; text-align: center; margin: 0;">If you didn't create a PrintWave account, you can safely ignore this email.</p>
+          <p style="color: #94A3B8; font-size: 12px; text-align: center; margin: 0;">If you didn't create a Persomith account, you can safely ignore this email.</p>
           <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 32px 0;" />
-          <p style="color: #CBD5E1; font-size: 11px; text-align: center; margin: 0;">© ${new Date().getFullYear()} PrintWave Studio · Professional Custom Printing</p>
+          <p style="color: #CBD5E1; font-size: 11px; text-align: center; margin: 0;">© ${new Date().getFullYear()} Persomith · Professional Custom Printing</p>
         </div>
       `,
         });
@@ -114,13 +115,13 @@ const sendPasswordResetEmail = async (user, token) => {
     });
     try {
         await transporter.sendMail({
-            from: `"PrintWave Studio" <${smtpUser}>`,
+            from: `"Persomith" <${smtpUser}>`,
             to: user.email,
-            subject: 'Reset your PrintWave password',
+            subject: 'Reset your Persomith password',
             html: `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <img src="${logoUrl}" alt="PrintWave" width="64" height="64" style="display:block;margin:0 auto;" />
+            <img src="${logoUrl}" alt="Persomith" width="64" height="64" style="display:block;margin:0 auto;" />
           </div>
           <h2 style="color: #1E293B; font-size: 20px; font-weight: 800; margin: 0 0 8px;">Reset your password</h2>
           <p style="color: #64748B; font-size: 14px; margin: 0 0 24px;">Hi ${user.firstName}, click below to reset your password. This link expires in 30 minutes.</p>
@@ -144,18 +145,21 @@ export const register = async (req, res, next) => {
     try {
         const { email, password, firstName, lastName, phone } = req.body;
         const userRepo = AppDataSource.getRepository(User);
-        const existingUser = await userRepo.findOneBy({ email });
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const normalizedPhone = phone ? String(phone).trim() : null;
+        const existingUser = await userRepo.findOneBy({ email: normalizedEmail });
         if (existingUser)
             throw ApiError.conflict('An account with this email already exists');
         const passwordHash = await bcrypt.hash(password, 12);
         const emailVerificationToken = crypto.randomBytes(32).toString('hex');
         const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
         const user = userRepo.create({
-            email,
+            email: normalizedEmail,
             passwordHash,
             firstName,
             lastName,
-            phone,
+            phone: normalizedPhone,
+            role: UserRole.CUSTOMER,
             emailVerificationToken,
             emailVerificationExpiry,
             isVerified: false,
@@ -198,7 +202,8 @@ export const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const userRepo = AppDataSource.getRepository(User);
-        const user = await userRepo.findOneBy({ email });
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const user = await userRepo.findOneBy({ email: normalizedEmail });
         if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
             throw ApiError.unauthorized('Invalid email or password');
         }
@@ -243,7 +248,8 @@ export const forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
         const userRepo = AppDataSource.getRepository(User);
-        const user = await userRepo.findOneBy({ email });
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const user = await userRepo.findOneBy({ email: normalizedEmail });
         // Always return OK to avoid user enumeration
         if (!user || !user.isActive) {
             return res.json(ApiResponse.ok(null, 'If the email exists, a reset link has been sent.'));
