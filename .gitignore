@@ -1,6 +1,8 @@
-# Monorepo ignore rules (ASP.NET + Node/Next + common tooling)
+# ============================
+# Printwave Monorepo .gitignore
+# ============================
 
-# --- OS / Editor ---
+# --- OS & Editor ---
 .DS_Store
 Thumbs.db
 Desktop.ini
@@ -8,58 +10,46 @@ Desktop.ini
 *.swo
 *.tmp
 *.bak
-*.log
-
-# --- Environment / secrets ---
-.env*
 
 # --- IDEs ---
-.vs/
 .vscode/
 .idea/
 *.suo
 *.user
-*.userosscache
-*.sln.docstates
 
-# --- .NET / Visual Studio build outputs ---
+# --- Environment / secrets (IMPORTANT: never commit these) ---
+.env
+.env.*
+!.env.example
+
+# --- Node / npm / pnpm ---
+**/node_modules/
+**/package-lock.json
+
+# --- Next.js (frontend) ---
+frontend/.next/
+frontend/out/
+frontend/coverage/
+frontend/.pnp
+frontend/.pnp.*
+frontend/.turbo/
+frontend/.vercel/
+frontend/.cache/
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# --- pnpm lock (keep for reproducible builds) ---
+# frontend/pnpm-lock.yaml  ← keep this tracked
+
+# --- Backend ---
+backend/dist/
+backend/logs/
+backend/tmp/
+backend/*.tsbuildinfo
+
+# --- .NET (if ever added) ---
 **/bin/
 **/obj/
-artifacts/
 TestResults/
 *.nupkg
 *.snupkg
-project.lock.json
-project.fragment.lock.json
-*.nuget.props
-*.nuget.targets\
-NuGet.Config.user
-node_modules
-# --- Node / Next.js ---
-**/node_modules/
-**/.next/
-**/out/
-**/coverage/
-**/.pnp
-**/.pnp.*
-**/.turbo/
-**/.vercel/
-**/.cache/
-**/*.tsbuildinfo
-
-# --- Project-specific ---
-/backend/dist/
-/backend/logs/
-/backend/tmp/
-
-# --- Frontend ---
-/frontend/node_modules/
-/frontend/.next/
-/frontend/out/
-/frontend/coverage/
-/frontend/.pnp
-/frontend/.pnp.*
-/frontend/.turbo/
-/frontend/.vercel/
-/frontend/.cache/
-/frontend/*.tsbuildinfo

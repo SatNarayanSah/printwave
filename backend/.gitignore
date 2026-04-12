@@ -1,2 +1,23 @@
-/node_modules
-.env*
+# Backend .gitignore
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+logs/
+*.log
+
+# Environment variables (never commit)
+.env
+.env.*
+!.env.example
+
+# Temp / uploads
+tmp/
+uploads/
+
+# TypeScript build info
+*.tsbuildinfo
