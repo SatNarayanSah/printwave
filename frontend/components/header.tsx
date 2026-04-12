@@ -1,8 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, Search, ShoppingCart, LogIn, LogOut, User, Sparkles } from 'lucide-react';
+import { Menu, X, Search, ShoppingCart, LogIn, LogOut, User } from 'lucide-react';
 import { useCart } from '@/lib/cartContext';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/authContext';
@@ -27,8 +28,15 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-sm">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+            <div className="h-9 w-9 rounded-xl bg-background/70 ring-1 ring-border/40 shadow-sm overflow-hidden">
+              <Image
+                src="/logo.png"
+                alt="PrintWave"
+                width={36}
+                height={36}
+                className="h-full w-full object-contain"
+                priority
+              />
             </div>
             <div className="hidden sm:block leading-tight">
               <div className="font-black text-lg tracking-tight text-foreground">PrintWave</div>

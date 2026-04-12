@@ -1,5 +1,6 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { Mail, Phone, MapPin, Sparkles } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -11,8 +12,14 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-sm">
-                <Sparkles className="w-4 h-4 text-primary-foreground" />
+              <div className="h-9 w-9 rounded-xl bg-background/70 ring-1 ring-border/40 shadow-sm overflow-hidden">
+                <Image
+                  src="/logo.png"
+                  alt="PrintWave"
+                  width={36}
+                  height={36}
+                  className="h-full w-full object-contain"
+                />
               </div>
               <span className="font-black text-lg tracking-tight">PrintWave</span>
             </div>

@@ -1,4 +1,4 @@
-// src/controllers/auth.controller.ts
+﻿// src/controllers/auth.controller.ts
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -38,11 +38,15 @@ const generateTokens = (user: { id: string; role: string }) => {
 
 const sha256 = (value: string) => crypto.createHash('sha256').update(value).digest('hex');
 
+const getFrontendBaseUrl = () =>
+  (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
+
 
 
 const sendVerificationEmail = async (user: User, token: string) => {
-  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const baseUrl = getFrontendBaseUrl();
   const link = `${baseUrl}/auth/verify-email?token=${token}`;
+  const logoUrl = `${baseUrl}/logo.png`;
 
   // Always log the link to console (useful fallback)
   console.log('\n=============================================');
@@ -77,10 +81,10 @@ const sendVerificationEmail = async (user: User, token: string) => {
       from: `"PrintWave Studio" <${smtpUser}>`,
       to: user.email,
       subject: 'Verify your PrintWave account',
-      html: `
+          html: `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px;">
           <div style="text-align: center; margin-bottom: 32px;">
-            <div style="width: 48px; height: 48px; background: #1E293B; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 24px; line-height: 48px;">P</div>
+            <img src="${logoUrl}" alt="PrintWave" width="64" height="64" style="display:block;margin:0 auto 12px;" />
             <h1 style="color: #1E293B; font-size: 22px; font-weight: 800; margin: 16px 0 8px;">Welcome to PrintWave!</h1>
             <p style="color: #64748B; font-size: 15px; margin: 0;">Hi ${user.firstName}, please verify your email to activate your account.</p>
           </div>
@@ -105,8 +109,9 @@ const sendVerificationEmail = async (user: User, token: string) => {
 };
 
 const sendPasswordResetEmail = async (user: User, token: string) => {
-  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const baseUrl = getFrontendBaseUrl();
   const link = `${baseUrl}/auth/reset-password?token=${token}`;
+  const logoUrl = `${baseUrl}/logo.png`;
 
   console.log('\n=============================================');
   console.log('🔒 PASSWORD RESET LINK:');
@@ -137,6 +142,9 @@ const sendPasswordResetEmail = async (user: User, token: string) => {
       subject: 'Reset your PrintWave password',
       html: `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <img src="${logoUrl}" alt="PrintWave" width="64" height="64" style="display:block;margin:0 auto;" />
+          </div>
           <h2 style="color: #1E293B; font-size: 20px; font-weight: 800; margin: 0 0 8px;">Reset your password</h2>
           <p style="color: #64748B; font-size: 14px; margin: 0 0 24px;">Hi ${user.firstName}, click below to reset your password. This link expires in 30 minutes.</p>
           <div style="text-align: center; margin: 24px 0;">
@@ -337,3 +345,4 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     next(err);
   }
 };
+
