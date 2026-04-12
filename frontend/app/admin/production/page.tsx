@@ -6,8 +6,50 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { adminApi } from '@/lib/api';
 
 export default function ProductionPage() {
+  const [ordersList, setOrdersList] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = () => {
+    setLoading(true);
+    adminApi.orders()
+      .then(res => setOrdersList(res.data || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      await adminApi.updateOrderStatus(id, { status });
+      fetchOrders();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const qualityCheckQueue = ordersList.filter(o => o.status === 'QUALITY_CHECK');
+  
+  // count items printed today (using orders shipped or ready)
+  let todayPrintedItems = 0;
+  const today = new Date().toDateString();
+  ordersList.forEach(o => {
+    if (['QUALITY_CHECK', 'READY_FOR_PICKUP', 'SHIPPED', 'DELIVERED'].includes(o.status)) {
+       const uDate = new Date(o.updatedAt).toDateString();
+       if (uDate === today) {
+          todayPrintedItems += o.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
+       }
+    }
+  });
+
+  const dailyTarget = 50;
+  const targetPerc = Math.min(100, Math.round((todayPrintedItems / dailyTarget) * 100));
+
   return (
     <div className="space-y-8">
       <div>
@@ -85,12 +127,35 @@ export default function ProductionPage() {
             </CardHeader>
             <CardContent>
                <div className="space-y-3">
-                  {[1, 2].map((i) => (
-                    <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-border/40 bg-muted/10">
-                       <span className="font-bold text-sm">#PW-1018 (3 Items)</span>
-                       <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase tracking-wider rounded-lg border-primary/20 hover:bg-primary/10 hover:text-primary">Inspect</Button>
-                    </div>
-                  ))}
+                  {loading ? (
+                    <div className="text-sm text-muted-foreground">Loading queue...</div>
+                  ) : qualityCheckQueue.length === 0 ? (
+                    <div className="text-sm text-muted-foreground p-3 bg-muted/10 rounded-xl border border-border/40">Queue is empty.</div>
+                  ) : qualityCheckQueue.map((order) => {
+                    const totalItems = order.items?.reduce((a: number, c: any) => a + c.quantity, 0) || 0;
+                    return (
+                      <div key={order.id} className="flex items-center justify-between p-3 rounded-xl border border-border/40 bg-muted/10">
+                         <span className="font-bold text-sm">#{order.orderNumber || order.id.substring(0,8).toUpperCase()} ({totalItems} Items)</span>
+                         <div className="flex gap-2">
+                           <Button 
+                             onClick={() => updateStatus(order.id, 'READY_FOR_PICKUP')}
+                             size="sm" 
+                             className="h-7 text-[10px] font-black uppercase tracking-wider rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white"
+                           >
+                             Pass
+                           </Button>
+                           <Button 
+                             onClick={() => updateStatus(order.id, 'PRINTING')}
+                             size="sm" 
+                             variant="outline" 
+                             className="h-7 text-[10px] font-black uppercase tracking-wider rounded-lg border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                           >
+                             Reject (Reprint)
+                           </Button>
+                         </div>
+                      </div>
+                    );
+                  })}
                </div>
             </CardContent>
          </Card>
@@ -103,10 +168,10 @@ export default function ProductionPage() {
             </CardHeader>
             <CardContent>
                 <div className="flex items-end gap-1 mb-2">
-                   <div className="text-4xl font-black">42</div>
-                   <div className="text-xs text-muted-foreground font-bold mb-1">/ 50 Target</div>
+                   <div className="text-4xl font-black">{todayPrintedItems}</div>
+                   <div className="text-xs text-muted-foreground font-bold mb-1">/ {dailyTarget} Target Items</div>
                 </div>
-                <Progress value={84} className="h-3 rounded-full bg-muted" />
+                <Progress value={targetPerc} className="h-3 rounded-full bg-muted" />
             </CardContent>
          </Card>
       </div>

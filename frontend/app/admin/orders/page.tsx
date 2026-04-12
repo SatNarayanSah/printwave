@@ -12,8 +12,11 @@ import {
   MoreHorizontal,
   ChevronRight,
   MapPin,
-  CalendarDays
+  CalendarDays,
+  Loader2,
+  PackageX
 } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,15 +31,69 @@ import {
   TableRow 
 } from '@/components/ui/table';
 
-const MOCK_ORDERS = [
-  { id: 'PW-1024', customer: 'Ayush Shah', date: 'Apr 12, 10:45 AM', items: 3, total: 'रू 2,499', status: 'Pending', method: 'eSewa', location: 'Janakpur' },
-  { id: 'PW-1023', customer: 'Bikash Mahato', date: 'Apr 12, 09:15 AM', items: 1, total: 'रू 1,250', status: 'Confirmed', method: 'Khalti', location: 'Kathmandu' },
-  { id: 'PW-1022', customer: 'Sneha Yadav', date: 'Apr 11, 04:30 PM', items: 5, total: 'रू 4,800', status: 'Printing', method: 'COD', location: 'Pokhara' },
-  { id: 'PW-1021', customer: 'Ram Kumar', date: 'Apr 11, 11:20 AM', items: 2, total: 'रू 1,850', status: 'Shipped', method: 'Bank Transfer', location: 'Janakpur' },
-  { id: 'PW-1020', customer: 'Sita Kumari', date: 'Apr 10, 02:15 PM', items: 1, total: 'रू 950', status: 'Delivered', method: 'eSewa', location: 'Biratnagar' },
-];
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function OrderManagementPage() {
+  const [ordersList, setOrdersList] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [search, setSearch] = React.useState('');
+  const [filterStatus, setFilterStatus] = React.useState('All');
+
+  React.useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = () => {
+    setLoading(true);
+    adminApi.orders()
+      .then(res => setOrdersList(res.data || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      await adminApi.updateOrderStatus(id, { status });
+      fetchOrders();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const filteredOrders = ordersList.filter(order => {
+    if (filterStatus !== 'All' && order.status !== filterStatus.toUpperCase() && order.status !== filterStatus) {
+      return false;
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      if (
+        !order.orderNumber?.toString().toLowerCase().includes(q) &&
+        !order.id.toLowerCase().includes(q) &&
+        !(order.user?.firstName + ' ' + order.user?.lastName).toLowerCase().includes(q)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const getStatusCount = (status: string) => {
+    return ordersList.filter(o => o.status === status).length;
+  };
+
+  const stats = [
+    { label: 'Pending', count: getStatusCount('PENDING'), color: 'bg-amber-500' },
+    { label: 'Processing', count: getStatusCount('PROCESSING'), color: 'bg-blue-500' },
+    { label: 'Shipped', count: getStatusCount('SHIPPED'), color: 'bg-indigo-500' },
+    { label: 'Delivered', count: getStatusCount('DELIVERED'), color: 'bg-emerald-500' },
+  ];
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -57,12 +114,7 @@ export default function OrderManagementPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-4">
-        {[
-          { label: 'New', count: '12', color: 'bg-amber-500' },
-          { label: 'Active', count: '28', color: 'bg-blue-500' },
-          { label: 'Shipping', count: '08', color: 'bg-purple-500' },
-          { label: 'Completed', count: '142', color: 'bg-emerald-500' },
-        ].map((item) => (
+        {stats.map((item) => (
           <Card key={item.label} className="border-border/40 shadow-sm relative overflow-hidden group">
             <div className={`absolute top-0 left-0 w-1 h-full ${item.color}`} />
             <CardHeader className="py-4">
@@ -77,12 +129,13 @@ export default function OrderManagementPage() {
         <CardHeader className="border-b border-border/40 bg-muted/20 pb-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-1.5 p-1 bg-background rounded-full border border-border/60">
-                {['All', 'Pending', 'Processing', 'Shipped', 'Delivered'].map((status, i) => (
+                {['All', 'PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((status, i) => (
                   <Button 
                     key={status}
                     variant="ghost" 
                     size="sm" 
-                    className={`h-7 text-[10px] font-bold rounded-full px-3 ${i === 0 ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground shadow-sm' : ''}`}
+                    onClick={() => setFilterStatus(status)}
+                    className={`h-7 text-[10px] font-bold rounded-full px-3 ${filterStatus === status ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground shadow-sm' : ''}`}
                   >
                     {status}
                   </Button>
@@ -91,7 +144,12 @@ export default function OrderManagementPage() {
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search orders..." className="pl-9 h-9 w-64 bg-background border-border/60" />
+                <Input 
+                  placeholder="Search orders..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 h-9 w-64 bg-background border-border/60" 
+                />
               </div>
               <Button variant="outline" size="icon" className="h-9 w-9">
                 <Filter className="h-4 w-4" />
@@ -112,61 +170,93 @@ export default function OrderManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_ORDERS.map((order) => (
-                <TableRow key={order.id} className="hover:bg-muted/10 transition-colors group">
-                  <TableCell className="pl-6">
-                    <span className="font-mono font-black text-primary text-sm">#{order.id}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm">{order.customer}</span>
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-bold">
-                        <MapPin className="h-3 w-3" />
-                        {order.location.toUpperCase()}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-semibold">{order.items} Items • {order.method}</span>
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-bold uppercase">
-                        <CalendarDays className="h-3 w-3 text-primary/60" />
-                        {order.date}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-black text-sm">{order.total}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      className={`
-                        font-bold text-[10px] uppercase tracking-wider border-none rounded-full px-3
-                        ${order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : ''}
-                        ${order.status === 'Confirmed' ? 'bg-blue-500/10 text-blue-500' : ''}
-                        ${order.status === 'Printing' ? 'bg-purple-500/10 text-purple-500' : ''}
-                        ${order.status === 'Shipped' ? 'bg-indigo-500/10 text-indigo-500' : ''}
-                        ${order.status === 'Delivered' ? 'bg-emerald-500/10 text-emerald-500' : ''}
-                      `}
-                      variant="outline"
-                    >
-                      {order.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right pr-6">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="outline" size="sm" className="h-8 font-bold text-[10px] uppercase gap-1 hover:bg-primary/10 hover:text-primary hover:border-primary/20 rounded-lg">
-                        <Printer className="h-3 w-3" />
-                        Label
-                      </Button>
-                      <Button size="sm" className="h-8 font-bold text-[10px] uppercase gap-1 rounded-lg">
-                        Process
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin mb-2" />
+                    Loading orders...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filteredOrders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                    <PackageX className="mx-auto h-8 w-8 text-muted-foreground/50 mb-2" />
+                    No orders found.
+                  </TableCell>
+                </TableRow>
+              ) : filteredOrders.map((order) => {
+                const totalItemCount = order.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
+                const customerName = order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest';
+                const location = order.address ? order.address.city : 'N/A';
+                
+                return (
+                  <TableRow key={order.id} className="hover:bg-muted/10 transition-colors group">
+                    <TableCell className="pl-6">
+                      <span className="font-mono font-black text-primary text-sm">#{order.orderNumber || order.id.substring(0,8).toUpperCase()}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm truncate max-w-[150px]" title={customerName}>{customerName}</span>
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-bold">
+                          <MapPin className="h-3 w-3" />
+                          <span className="truncate max-w-[120px]">{location.toUpperCase()}</span>
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold">{totalItemCount} Items • App</span>
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-bold uppercase">
+                          <CalendarDays className="h-3 w-3 text-primary/60" />
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-black text-sm">रू {Number(order.total).toLocaleString()}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        className={`
+                          font-bold text-[10px] uppercase tracking-wider border-none rounded-full px-3
+                          ${['PENDING', 'Pending'].includes(order.status) ? 'bg-amber-500/10 text-amber-500' : ''}
+                          ${['PROCESSING', 'Confirmed'].includes(order.status) ? 'bg-blue-500/10 text-blue-500' : ''}
+                          ${['SHIPPED', 'Shipped'].includes(order.status) ? 'bg-indigo-500/10 text-indigo-500' : ''}
+                          ${['DELIVERED', 'Delivered'].includes(order.status) ? 'bg-emerald-500/10 text-emerald-500' : ''}
+                          ${['CANCELLED', 'Cancelled'].includes(order.status) ? 'bg-destructive/10 text-destructive' : ''}
+                        `}
+                        variant="outline"
+                      >
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-6">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="outline" size="sm" className="h-8 font-bold text-[10px] uppercase gap-1 hover:bg-primary/10 hover:text-primary hover:border-primary/20 rounded-lg">
+                          <Printer className="h-3 w-3" />
+                          Label
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" className="h-8 font-bold text-[10px] uppercase gap-1 rounded-lg">
+                              Process
+                              <ChevronRight className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48 rounded-xl font-medium">
+                            <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => updateStatus(order.id, 'PROCESSING')}>Mark as Processing</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus(order.id, 'SHIPPED')}>Mark as Shipped</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus(order.id, 'DELIVERED')} className="text-emerald-500">Mark as Delivered</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => updateStatus(order.id, 'CANCELLED')} className="text-destructive focus:bg-destructive/10 text-xs">Cancel Order</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

@@ -11,8 +11,11 @@ import {
   Eye,
   Settings2,
   MoreVertical,
-  Trash2
+  Trash2,
+  Loader2,
+  PackageX
 } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,15 +38,61 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const MOCK_PRODUCTS = [
-  { id: '1', name: 'Premium Cotton T-Shirt', type: 'Apparel', category: 'Clothing', price: 'रू 899', stock: 245, variants: '8 Colors, 5 Sizes', status: 'In Stock' },
-  { id: '2', name: 'Ceramic Matte Mug', type: 'Drinkware', category: 'Accessories', price: 'रू 450', stock: 120, variants: '4 Colors', status: 'In Stock' },
-  { id: '3', name: 'Heavyweight Hoodie', type: 'Apparel', category: 'Clothing', price: 'रू 2,499', stock: 15, variants: '3 Colors, 4 Sizes', status: 'Low Stock' },
-  { id: '4', name: 'Tote Bag - Eco Cotton', type: 'Accessories', category: 'Bags', price: 'रू 350', stock: 0, variants: '2 Colors', status: 'Out of Stock' },
-  { id: '5', name: 'Snapback Cap', type: 'Accessories', category: 'Clothing', price: 'रू 1,200', stock: 85, variants: 'One Size', status: 'In Stock' },
-];
-
 export default function ProductManagementPage() {
+  const [productsList, setProductsList] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [search, setSearch] = React.useState('');
+  const [categoryFilter, setCategoryFilter] = React.useState('All');
+
+  React.useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = () => {
+    setLoading(true);
+    adminApi.products()
+      .then(res => setProductsList(res.data || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    try {
+      await adminApi.deleteProduct(id);
+      fetchProducts();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const filteredProducts = productsList.filter(prod => {
+    if (categoryFilter !== 'All' && prod.category?.name !== categoryFilter) {
+      return false;
+    }
+    if (search && !prod.name.toLowerCase().includes(search.toLowerCase())) {
+      return false;
+    }
+    return true;
+  });
+
+  const totalProducts = productsList.length;
+  // Calculate active variants and low stock alerts from real data
+  let activeVariantsCount = 0;
+  let lowStockAlertsCount = 0;
+
+  productsList.forEach(prod => {
+    const variants = prod.variants || [];
+    variants.forEach((v: any) => {
+      if (v.stock > 0) activeVariantsCount++;
+      if (v.stock > 0 && v.stock < 10) lowStockAlertsCount++;
+    });
+    // Fallback if variants are not fully populated but product itself has low stock?
+    // Let's just use the variants calculation.
+  });
+
+  const uniqueCategories = ['All', ...Array.from(new Set(productsList.map(p => p.category?.name).filter(Boolean)))];
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -67,16 +116,16 @@ export default function ProductManagementPage() {
         <Card className="border-border/40 shadow-sm">
           <CardHeader className="pb-2">
             <CardDescription className="text-xs uppercase font-bold tracking-widest">Total Products</CardDescription>
-            <CardTitle className="text-3xl font-black">128</CardTitle>
+            <CardTitle className="text-3xl font-black">{totalProducts}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-muted-foreground font-medium">Across 12 categories</div>
+            <div className="text-xs text-muted-foreground font-medium">Across {uniqueCategories.length - 1} categories</div>
           </CardContent>
         </Card>
         <Card className="border-border/40 shadow-sm">
           <CardHeader className="pb-2">
             <CardDescription className="text-xs uppercase font-bold tracking-widest">Active Variants</CardDescription>
-            <CardTitle className="text-3xl font-black">456</CardTitle>
+            <CardTitle className="text-3xl font-black">{activeVariantsCount}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-muted-foreground font-medium">Sizes and colors in stock</div>
@@ -85,7 +134,7 @@ export default function ProductManagementPage() {
         <Card className="border-border/40 shadow-sm bg-primary/5 border-primary/20">
           <CardHeader className="pb-2">
             <CardDescription className="text-xs uppercase font-bold tracking-widest text-primary">Low Stock Alerts</CardDescription>
-            <CardTitle className="text-3xl font-black text-primary">7</CardTitle>
+            <CardTitle className="text-3xl font-black text-primary">{lowStockAlertsCount}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-primary/70 font-bold">Needs restock immediately</div>
@@ -97,13 +146,14 @@ export default function ProductManagementPage() {
         <CardHeader className="border-b border-border/40 bg-muted/20 pb-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-               <div className="flex -space-x-1">
-                  {['All', 'Clothing', 'Drinkware', 'Bags'].map((cat, i) => (
+               <div className="flex flex-wrap gap-1">
+                  {uniqueCategories.map((cat, i) => (
                     <Button 
                       key={cat}
-                      variant={i === 0 ? 'default' : 'outline'} 
+                      variant={categoryFilter === cat ? 'default' : 'outline'} 
                       size="sm" 
-                      className={`h-8 text-xs font-bold rounded-full px-4 ${i !== 0 ? 'bg-background hover:bg-muted' : ''}`}
+                      onClick={() => setCategoryFilter(cat)}
+                      className={`h-8 text-xs font-bold rounded-full px-4 ${categoryFilter !== cat ? 'bg-background hover:bg-muted' : ''}`}
                     >
                       {cat}
                     </Button>
@@ -113,7 +163,12 @@ export default function ProductManagementPage() {
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search products..." className="pl-9 h-9 w-64 bg-background" />
+                <Input 
+                  placeholder="Search products..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 h-9 w-64 bg-background" 
+                />
               </div>
               <Button variant="outline" size="icon" className="h-9 w-9">
                 <Filter className="h-4 w-4" />
@@ -134,72 +189,100 @@ export default function ProductManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_PRODUCTS.map((prod) => (
-                <TableRow key={prod.id} className="hover:bg-muted/10 transition-colors">
-                  <TableCell className="pl-6">
-                    <div className="flex items-center gap-3 py-1">
-                      <div className="h-12 w-12 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-muted-foreground">
-                        <Package className="h-6 w-6" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm tracking-tight">{prod.name}</span>
-                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{prod.type}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-bold border-border/60 text-[10px] uppercase">
-                      {prod.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-black text-sm">{prod.price}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                      <Palette className="h-3 w-3" />
-                      {prod.variants}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      className={`
-                        font-bold text-[10px] uppercase tracking-wider border-none
-                        ${prod.status === 'In Stock' ? 'bg-emerald-500/10 text-emerald-500' : ''}
-                        ${prod.status === 'Low Stock' ? 'bg-amber-500/10 text-amber-500' : ''}
-                        ${prod.status === 'Out of Stock' ? 'bg-destructive/10 text-destructive' : ''}
-                      `}
-                      variant="outline"
-                    >
-                      {prod.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right pr-6">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-blue-500">
-                        <Settings2 className="h-4 w-4" />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40 rounded-xl">
-                          <DropdownMenuItem className="gap-2 font-medium">Duplicate</DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 font-medium">Archive</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="gap-2 font-bold text-destructive focus:bg-destructive/10 focus:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin mb-2" />
+                    Loading products...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filteredProducts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                    <PackageX className="mx-auto h-8 w-8 text-muted-foreground/50 mb-2" />
+                    No products found.
+                  </TableCell>
+                </TableRow>
+              ) : filteredProducts.map((prod) => {
+                const totalStock = prod.variants?.reduce((acc: number, v: any) => acc + (v.stock || 0), 0) || 0;
+                let status = 'Out of Stock';
+                if (totalStock > 0 && totalStock < 10) status = 'Low Stock';
+                else if (totalStock >= 10) status = 'In Stock';
+
+                return (
+                  <TableRow key={prod.id} className="hover:bg-muted/10 transition-colors">
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-3 py-1">
+                        <div className="h-12 w-12 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-muted-foreground overflow-hidden">
+                           {prod.imageUrl ? (
+                             <img src={prod.imageUrl} alt={prod.name} className="h-full w-full object-cover" />
+                           ) : (
+                             <Package className="h-6 w-6" />
+                           )}
+                        </div>
+                        <div className="flex flex-col max-w-[200px]">
+                          <span className="font-bold text-sm tracking-tight truncate" title={prod.name}>{prod.name}</span>
+                          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{prod.isCustomizable ? 'Customizable' : 'Standard'}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-bold border-border/60 text-[10px] uppercase">
+                        {prod.category?.name || 'Uncategorized'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-black text-sm">रू {Number(prod.basePrice).toLocaleString()}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <Palette className="h-3 w-3" />
+                        {prod.variants?.length || 0} Variants
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        className={`
+                          font-bold text-[10px] uppercase tracking-wider border-none
+                          ${status === 'In Stock' ? 'bg-emerald-500/10 text-emerald-500' : ''}
+                          ${status === 'Low Stock' ? 'bg-amber-500/10 text-amber-500' : ''}
+                          ${status === 'Out of Stock' ? 'bg-destructive/10 text-destructive' : ''}
+                        `}
+                        variant="outline"
+                      >
+                        {status} ({totalStock})
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-6">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-blue-500">
+                          <Settings2 className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40 rounded-xl">
+                            <DropdownMenuItem className="gap-2 font-medium">Duplicate</DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2 font-medium">Archive</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="gap-2 font-bold text-destructive focus:bg-destructive/10 focus:text-destructive"
+                              onClick={() => handleDelete(prod.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

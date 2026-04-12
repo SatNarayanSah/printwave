@@ -55,7 +55,8 @@ export const getAdminProducts = async (req: Request, res: Response, next: NextFu
   try {
     const productRepo = AppDataSource.getRepository(Product);
     const products = await productRepo.find({
-      relations: ['category']
+      relations: ['category', 'variants'],
+      order: { createdAt: 'DESC' }
     });
     res.json(ApiResponse.ok(products));
   } catch (error) {
@@ -151,7 +152,7 @@ export const getAdminOrders = async (req: Request, res: Response, next: NextFunc
   try {
     const orderRepo = AppDataSource.getRepository(Order);
     const orders = await orderRepo.find({
-      relations: ['user', 'address'],
+      relations: ['user', 'address', 'items', 'items.product', 'items.variant'],
       order: { createdAt: 'DESC' }
     });
     res.json(ApiResponse.ok(orders));
@@ -297,6 +298,27 @@ export const updateUserStatus = async (req: Request, res: Response, next: NextFu
     await userRepo.save(user);
 
     res.json(ApiResponse.ok({ id: user.id, isActive: user.isActive }, `User is now ${isActive ? 'active' : 'suspended'}`));
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const updateDesignStatus = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { isApproved } = req.body;
+    
+    const designRepo = AppDataSource.getRepository(CustomDesign);
+    const design = await designRepo.findOneBy({ id });
+    if (!design) {
+      return res.status(404).json(ApiResponse.error('Design not found'));
+    }
+
+    design.isApproved = isApproved;
+    await designRepo.save(design);
+
+    res.json(ApiResponse.ok({ id: design.id, isApproved: design.isApproved }, 'Design status updated successfully'));
   } catch (error) {
     next(error);
   }

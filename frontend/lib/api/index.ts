@@ -114,4 +114,11 @@ export const adminApi = {
   updateOrderStatus: (id: string, payload: { status: string }) =>
     apiPut<unknown>(`/api/admin/orders/${encodeURIComponent(id)}/status`, payload),
   designs: () => apiGet<unknown>('/api/admin/designs', undefined, { cache: 'no-store' }),
+  updateDesignStatus: (id: string, payload: { isApproved: boolean }) =>
+    apiPut<unknown>(`/api/admin/designs/${encodeURIComponent(id)}/status`, payload),
+  users: () => apiGet<AuthUserDto[]>('/api/admin/users', undefined, { cache: 'no-store' }),
+  updateUserRole: (id: string, payload: { role: string }) =>
+    apiPut<unknown>(`/api/admin/users/${encodeURIComponent(id)}/role`, payload),
+  updateUserStatus: (id: string, payload: { isActive: boolean }) =>
+    apiPut<unknown>(`/api/admin/users/${encodeURIComponent(id)}/status`, payload),
 };

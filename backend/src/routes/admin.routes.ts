@@ -7,7 +7,8 @@ import {
     createDesignerAccount,
     getAdminUsers,
     updateUserRole,
-    updateUserStatus
+    updateUserStatus,
+    updateDesignStatus
 } from '../controllers/admin.controller.js';
 import { authenticate, authorize } from '../middleware/authenticate.js';
 import { validate } from '../middleware/validate.js';
@@ -29,6 +30,7 @@ router.get('/orders', getAdminOrders);
 router.put('/orders/:id/status', updateOrderStatus);
 
 router.get('/designs', getAdminDesigns);
+router.put('/designs/:id/status', updateDesignStatus);
 router.post('/designers', validate(createDesignerSchema), createDesignerAccount);
 
 router.get('/users', getAdminUsers);
