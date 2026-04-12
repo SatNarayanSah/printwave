@@ -7,10 +7,10 @@ import { ThreeBackground } from '@/components/three-background';
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdminRoute = pathname?.startsWith('/admin');
+  const isStudioRoute = pathname?.startsWith('/admin') || pathname?.startsWith('/designer');
 
-  if (isAdminRoute) {
-    // Admin has its own full-page layout — no header, footer, or bg effect
+  if (isStudioRoute) {
+    // Admin and Designer have their own full-page layouts
     return <>{children}</>;
   }
 

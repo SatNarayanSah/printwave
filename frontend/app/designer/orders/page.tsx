@@ -67,39 +67,39 @@ export default function DesignerOrdersPage() {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-4 animate-in fade-in duration-500">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-black tracking-tight">Orders</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          All customer orders that include your designs.
+        <h1 className="text-2xl font-black tracking-tight text-foreground">Order Feed</h1>
+        <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+          Sales history of your custom artwork
         </p>
       </div>
 
-      <Card className="border-border/40 shadow-sm rounded-2xl overflow-hidden">
+      <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden">
         {/* Filters */}
-        <CardHeader className="border-b border-border/40 bg-muted/20 py-3 px-5">
+        <CardHeader className="border-b border-border/20 py-2.5 px-4 bg-muted/20">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <Tabs value={tab} onValueChange={setTab} className="w-fit">
-              <TabsList className="bg-muted/60 p-1 h-8 border border-border/40 flex-wrap">
+              <TabsList className="bg-muted/40 p-0.5 h-7 border border-border/40 flex-wrap overflow-hidden">
                 {STATUS_TABS.map((s) => (
                   <TabsTrigger
                     key={s}
                     value={s}
-                    className="rounded-md px-3 py-1 text-[11px] font-bold data-[state=active]:bg-background capitalize"
+                    className="rounded-md px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background"
                   >
-                    {s === 'all' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
+                    {s === 'all' ? 'All' : s}
                   </TabsTrigger>
                 ))}
               </TabsList>
             </Tabs>
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/60" />
               <Input
-                placeholder="Search orders..."
+                placeholder="Find orders..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 h-8 w-56 bg-background border-border/60 text-xs rounded-full"
+                className="pl-8 h-7 w-48 bg-background/50 border-border/40 text-[11px] font-medium rounded-lg focus-visible:ring-1 focus-visible:ring-primary/40"
               />
             </div>
           </div>
@@ -107,76 +107,75 @@ export default function DesignerOrdersPage() {
 
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center h-48 gap-3 text-muted-foreground">
-              <Loader2 className="h-7 w-7 animate-spin text-orange-500" />
-              <p className="text-sm">Loading orders...</p>
+            <div className="flex flex-col items-center justify-center h-48 gap-2 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin text-primary/60" />
+              <span className="text-[10px] font-black uppercase">Syncing Orders...</span>
             </div>
           ) : error ? (
-            <div className="flex flex-col items-center justify-center h-48 gap-3 text-destructive">
-              <AlertTriangle className="h-7 w-7 opacity-60" />
-              <p className="text-sm font-bold">{error}</p>
+            <div className="flex flex-col items-center justify-center h-48 gap-2 text-destructive">
+              <AlertTriangle className="h-6 w-6 opacity-60" />
+              <span className="text-[10px] font-black uppercase">{error}</span>
             </div>
           ) : (
-            <Table>
-              <TableHeader className="bg-muted/5">
-                <TableRow className="h-10 border-b border-border/40">
-                  <TableHead className="font-bold text-xs pl-6">Order</TableHead>
-                  <TableHead className="font-bold text-xs">Customer</TableHead>
-                  <TableHead className="font-bold text-xs text-center">Designs Used</TableHead>
-                  <TableHead className="font-bold text-xs">Amount</TableHead>
-                  <TableHead className="font-bold text-xs">Date</TableHead>
-                  <TableHead className="font-bold text-xs pr-6">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-40 text-center text-muted-foreground text-sm">
-                      <ShoppingBag className="mx-auto h-8 w-8 opacity-25 mb-2" />
-                      {search ? 'No orders match your search.' : 'No orders with your designs yet.'}
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/10">
+                  <TableRow className="h-9 border-b border-border/20">
+                    <TableHead className="font-black text-[10px] uppercase pl-6">ID</TableHead>
+                    <TableHead className="font-black text-[10px] uppercase">Client</TableHead>
+                    <TableHead className="font-black text-[10px] uppercase text-center">Items</TableHead>
+                    <TableHead className="font-black text-[10px] uppercase">Earning</TableHead>
+                    <TableHead className="font-black text-[10px] uppercase">Date</TableHead>
+                    <TableHead className="font-black text-[10px] uppercase pr-6">Status</TableHead>
                   </TableRow>
-                ) : filtered.map((o: any) => (
-                  <TableRow key={o.id} className="hover:bg-muted/10 transition-colors h-14">
-                    <TableCell className="pl-6 font-mono font-bold text-xs text-primary">
-                      #{o.orderNumber || o.id?.slice(0, 8).toUpperCase()}
-                    </TableCell>
-                    <TableCell className="font-semibold text-sm">{o.customerName || '—'}</TableCell>
-                    <TableCell className="text-center">
-                      <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-orange-500/10 text-orange-500 font-black text-xs">
-                        {o.designCount}
-                      </span>
-                    </TableCell>
-                    <TableCell className="font-bold text-sm">रू {Number(o.total).toLocaleString()}</TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
-                      {new Date(o.createdAt).toLocaleDateString('en-NP', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </TableCell>
-                    <TableCell className="pr-6">
-                      <Badge
-                        variant="outline"
-                        className={`border-none font-bold text-[10px] px-2 h-5 rounded-full uppercase tracking-wide ${STATUS_STYLES[o.status] || 'bg-muted/40 text-muted-foreground'}`}
-                      >
-                        {o.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtered.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-40 text-center text-muted-foreground/40 font-black uppercase tracking-widest text-[11px]">
+                        <ShoppingBag className="mx-auto h-8 w-8 opacity-10 mb-2" />
+                        {search ? 'Zero Results' : 'No Sales Records'}
+                      </TableCell>
+                    </TableRow>
+                  ) : filtered.map((o: any) => (
+                    <TableRow key={o.id} className="hover:bg-muted/20 transition-colors h-12 border-b border-border/10">
+                      <TableCell className="pl-6 font-mono font-black text-[11px] text-primary">
+                        #{o.orderNumber || o.id?.slice(0, 6).toUpperCase()}
+                      </TableCell>
+                      <TableCell className="font-bold text-xs truncate max-w-[120px]">{o.customerName || '—'}</TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center justify-center h-5 w-5 rounded-md bg-muted/60 text-muted-foreground font-black text-[10px]">
+                          {o.designCount}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-black text-xs tabular-nums text-foreground">रू {Number(o.total).toLocaleString()}</TableCell>
+                      <TableCell className="text-muted-foreground/60 font-medium text-[10px]">
+                        {new Date(o.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="pr-6">
+                        <Badge
+                          variant="outline"
+                          className={`border-none font-black text-[9px] px-1.5 h-4.5 rounded-sm uppercase tracking-tighter ${STATUS_STYLES[o.status] || 'bg-muted/40 text-muted-foreground'}`}
+                        >
+                          {o.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Summary */}
+      {/* Summary Footer Line */}
       {!loading && !error && orders.length > 0 && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
-          <ShoppingBag className="h-3.5 w-3.5" />
-          <span>
-            Showing <span className="font-bold text-foreground">{filtered.length}</span> of{' '}
-            <span className="font-bold text-foreground">{orders.length}</span> orders
-          </span>
+        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1 opacity-70">
+           Found {filtered.length} records in total
         </div>
       )}
     </div>
+
   );
 }

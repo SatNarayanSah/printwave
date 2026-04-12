@@ -62,23 +62,23 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
     <SidebarProvider>
       <DesignerSidebar />
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border/40 bg-background/80 backdrop-blur-md px-4">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/20 bg-background/60 backdrop-blur-md px-4">
           <SidebarTrigger className="-ml-1" />
-          <div className="h-4 w-[1px] bg-border/60 mx-1" />
+          <div className="h-4 w-[1px] bg-border/40 mx-1" />
           <div className="hidden md:flex flex-1 items-center">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/designer" className="flex items-center gap-1">
-                    <Home className="h-3.5 w-3.5" />
-                    Designer
+                  <BreadcrumbLink href="/designer" className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-primary transition-colors">
+                    <Home className="h-3 w-3" />
+                    Studio
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {pathname !== '/designer' && (
                   <>
-                    <BreadcrumbSeparator />
+                    <BreadcrumbSeparator className="opacity-40" />
                     <BreadcrumbItem>
-                      <BreadcrumbPage>{pageName}</BreadcrumbPage>
+                      <BreadcrumbPage className="text-[10px] font-black uppercase tracking-widest text-foreground/80">{pageName}</BreadcrumbPage>
                     </BreadcrumbItem>
                   </>
                 )}
@@ -87,13 +87,13 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
           </div>
           <div className="flex flex-1 md:hidden" />
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shadow ring-2 ring-orange-500/20 cursor-pointer">
-              {user.name?.charAt(0) || 'D'}
+            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-[10px] font-black shadow-inner ring-1 ring-primary/20 cursor-pointer">
+              {user.firstName?.charAt(0) || 'D'}
             </div>
           </div>
         </header>
-        <main className="p-6 md:p-8">
-          <div className="mx-auto max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <main className="p-4 md:p-6 lg:p-8">
+          <div className="mx-auto max-w-[1600px] animate-in fade-in slide-in-from-bottom-2 duration-500">
             {children}
           </div>
         </main>

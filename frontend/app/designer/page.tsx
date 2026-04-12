@@ -94,76 +94,79 @@ export default function DesignerDashboardPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Designer Studio</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Track your designs, approvals, and orders at a glance.
+          <h1 className="text-2xl font-black tracking-tight text-foreground">Studio Overview</h1>
+          <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+            Real-time performance & activity
           </p>
         </div>
         <Link href="/designer/designs">
-          <Button className="gap-2 rounded-full font-bold px-6 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-lg shadow-orange-500/20 border-0">
-            <Upload className="h-4 w-4" />
-            Upload Design
+          <Button size="sm" className="gap-2 rounded-xl font-bold px-4 h-9 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/10 border-0">
+            <Upload className="h-3.5 w-3.5" />
+            New Design
           </Button>
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats - Compact Grid */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {statCards.map((s) => (
-          <Card key={s.title} className="border-border/40 shadow-sm hover:shadow-md hover:border-orange-500/20 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{s.title}</CardTitle>
-              <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${s.color}`}>
-                <s.icon className="h-4 w-4" />
+          <Card key={s.title} className="border-border/40 bg-card/40 backdrop-blur-sm shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3 px-4">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">{s.title}</span>
+              <div className={`h-6 w-6 rounded-lg flex items-center justify-center ${s.color.split(' ')[0]} bg-opacity-10`}>
+                <s.icon className={`h-3 w-3 ${s.color.split(' ')[1]}`} />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black">{s.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">{s.sub}</p>
+            <CardContent className="px-4 pb-3">
+              <div className="text-xl font-black tabular-nums">{s.value}</div>
+              <p className="text-[9px] text-muted-foreground/60 font-bold truncate mt-0.5">{s.sub}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Recent content grid */}
-      <div className="grid gap-6 lg:grid-cols-5">
+      {/* Main Content - Tighter Layout */}
+      <div className="grid gap-4 lg:grid-cols-12">
         {/* Recent Designs */}
-        <Card className="lg:col-span-3 border-border/40 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <Card className="lg:col-span-7 border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl">
+          <CardHeader className="flex flex-row items-center justify-between py-3 px-5 border-b border-border/20">
             <div>
-              <CardTitle className="text-base font-bold">Recent Uploads</CardTitle>
-              <CardDescription className="text-xs">Your latest design files.</CardDescription>
+              <CardTitle className="text-sm font-black uppercase tracking-tight">Recent Studio Work</CardTitle>
             </div>
             <Link href="/designer/designs">
-              <Button variant="outline" size="sm" className="h-8 text-xs gap-1 rounded-full">
-                View All <ArrowUpRight className="h-3 w-3" />
+              <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-widest gap-1 hover:bg-muted/50 rounded-full">
+                All <ArrowUpRight className="h-3 w-3" />
               </Button>
             </Link>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="p-2 space-y-1">
             {recentDesigns.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-36 text-muted-foreground text-sm gap-2">
-                <ImageIcon className="h-8 w-8 opacity-30" />
-                <span>No designs yet. Start uploading!</span>
+              <div className="flex flex-col items-center justify-center h-48 text-muted-foreground/40 text-[11px] font-bold uppercase tracking-widest gap-2">
+                <ImageIcon className="h-8 w-8 opacity-20" />
+                <span>Empty Studio</span>
               </div>
             ) : recentDesigns.map((d: any) => (
-              <div key={d.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/60 transition-colors">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
-                  <ImageIcon className="h-5 w-5 text-orange-500" />
+              <div key={d.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted/40 transition-all group">
+                <div className="h-9 w-9 rounded-lg bg-muted/50 overflow-hidden flex items-center justify-center flex-shrink-0 border border-border/40 group-hover:border-primary/30 transition-colors">
+                  {d.fileUrl ? (
+                    <img src={d.thumbnailUrl || d.fileUrl} className="h-full w-full object-cover" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4 text-muted-foreground/30" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{d.name || 'Untitled Design'}</p>
-                  <p className="text-xs text-muted-foreground">{d.fileSizeKb} KB · {new Date(d.createdAt).toLocaleDateString()}</p>
+                  <p className="font-bold text-xs truncate leading-none mb-1">{d.name || 'Untitled'}</p>
+                  <p className="text-[10px] text-muted-foreground/70 font-medium">{d.fileSizeKb} KB · {new Date(d.createdAt).toLocaleDateString()}</p>
                 </div>
                 <Badge
                   variant="outline"
-                  className={`text-[10px] font-bold border-none px-2 h-5 rounded-full flex-shrink-0 ${d.isApproved ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}
+                  className={`text-[9px] font-black uppercase tracking-tighter border-none px-2 h-5 rounded-md flex-shrink-0 ${d.isApproved ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}`}
                 >
-                  {d.isApproved ? 'Approved' : 'Pending'}
+                  {d.isApproved ? 'Live' : 'Review'}
                 </Badge>
               </div>
             ))}
@@ -171,33 +174,32 @@ export default function DesignerDashboardPage() {
         </Card>
 
         {/* Recent Orders */}
-        <Card className="lg:col-span-2 border-border/40 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <Card className="lg:col-span-5 border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl">
+          <CardHeader className="flex flex-row items-center justify-between py-3 px-5 border-b border-border/20">
             <div>
-              <CardTitle className="text-base font-bold">Recent Orders</CardTitle>
-              <CardDescription className="text-xs">Orders using your designs.</CardDescription>
+              <CardTitle className="text-sm font-black uppercase tracking-tight">Latest Earnings</CardTitle>
             </div>
             <Link href="/designer/orders">
-              <Button variant="outline" size="sm" className="h-8 text-xs gap-1 rounded-full">
-                All <ArrowUpRight className="h-3 w-3" />
+              <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-widest gap-1 hover:bg-muted/50 rounded-full">
+                 More <ArrowUpRight className="h-3 w-3" />
               </Button>
             </Link>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="p-2 space-y-1">
             {recentOrders.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-36 text-muted-foreground text-sm gap-2">
-                <ShoppingBag className="h-8 w-8 opacity-30" />
-                <span>No orders with your designs yet.</span>
+              <div className="flex flex-col items-center justify-center h-48 text-muted-foreground/40 text-[11px] font-bold uppercase tracking-widest gap-2">
+                <ShoppingBag className="h-8 w-8 opacity-20" />
+                <span>No Sales Yet</span>
               </div>
             ) : recentOrders.map((o: any) => (
-              <div key={o.id} className="flex items-center justify-between gap-2 p-3 rounded-xl bg-muted/30 hover:bg-muted/60 transition-colors">
-                <div>
-                  <p className="font-mono font-bold text-xs text-primary">#{o.orderNumber || o.id?.slice(0, 8).toUpperCase()}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{o.designCount} design{o.designCount !== 1 ? 's' : ''}</p>
+              <div key={o.id} className="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-muted/40 transition-all">
+                <div className="flex flex-col">
+                  <span className="font-mono font-black text-[10px] text-primary">#{o.orderNumber || o.id?.slice(0, 6).toUpperCase()}</span>
+                  <span className="text-[10px] text-muted-foreground font-bold">{o.designCount} Artwork{o.designCount !== 1 ? 's' : ''}</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-xs">रू {Number(o.total).toLocaleString()}</p>
-                  <Badge variant="outline" className={`mt-0.5 text-[9px] font-bold border-none px-2 h-4 rounded-full ${ORDER_STATUS_STYLES[o.status] || 'bg-muted text-muted-foreground'}`}>
+                <div className="text-right flex flex-col items-end">
+                  <span className="font-black text-xs tabular-nums text-foreground">रू {Number(o.total).toLocaleString()}</span>
+                  <Badge variant="outline" className={`mt-0.5 text-[8px] font-black px-1.5 h-4 border-none rounded-sm uppercase tracking-tighter ${ORDER_STATUS_STYLES[o.status] || 'bg-muted text-muted-foreground'}`}>
                     {o.status}
                   </Badge>
                 </div>
@@ -207,21 +209,17 @@ export default function DesignerDashboardPage() {
         </Card>
       </div>
 
-      {/* Approval guidance */}
+      {/* Compact Alert Notification */}
       {stats.pendingDesigns > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5 shadow-sm">
-          <CardContent className="flex items-center gap-4 py-4">
-            <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-              <Clock className="h-5 w-5 text-amber-500" />
+        <Card className="border-amber-500/20 bg-amber-500/5 shadow-sm rounded-2xl overflow-hidden">
+          <CardContent className="flex items-center gap-3 py-3 px-5">
+            <div className="h-8 w-8 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+              <Clock className="h-4 w-4 text-amber-500" />
             </div>
-            <div>
-              <p className="font-bold text-sm">
-                {stats.pendingDesigns} design{stats.pendingDesigns !== 1 ? 's' : ''} awaiting admin review
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Designs must be approved before they appear in orders. This usually takes 1–2 business days.
-              </p>
-            </div>
+            <p className="text-[11px] font-bold text-amber-700/80 leading-tight">
+              {stats.pendingDesigns} design{stats.pendingDesigns !== 1 ? 's' : ''} in review. 
+              <span className="font-medium text-muted-foreground ml-1">Approved artwork will be listed automatically.</span>
+            </p>
           </CardContent>
         </Card>
       )}
