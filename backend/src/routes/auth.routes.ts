@@ -1,7 +1,7 @@
 import { Router, Request } from 'express';
-import { register, login, logout, verifyEmail, getMe } from '../controllers/auth.controller.js';
+import { register, login, logout, verifyEmail, getMe, forgotPassword, resetPassword } from '../controllers/auth.controller.js';
 import { validate } from '../middleware/validate.js';
-import { registerSchema, loginSchema } from '../validators/auth.validator.js';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../validators/auth.validator.js';
 import { authenticate } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -10,6 +10,8 @@ router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
 router.post('/logout', logout);
 router.get('/verify-email', verifyEmail);
+router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
+router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
 router.get('/me', authenticate, getMe);
 
 // Dev-only: Test SMTP connection
@@ -58,4 +60,3 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export default router;
-

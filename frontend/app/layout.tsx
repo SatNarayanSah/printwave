@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { CartProvider } from '@/lib/cartContext'
+import { AuthProvider } from '@/lib/authContext'
+import { ThreeBackground } from '@/components/three-background'
+import { Header } from '@/components/header'
+import { Footer } from '@/components/footer'
 import './globals.css'
-
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'Printwave - Print On Demand',
@@ -38,10 +38,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <CartProvider>
-          {children}
-          {process.env.NODE_ENV === 'production' && <Analytics />}
-        </CartProvider>
+        <ThreeBackground />
+        <AuthProvider>
+          <CartProvider>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              {process.env.NODE_ENV === 'production' && <Analytics />}
+            </div>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   )

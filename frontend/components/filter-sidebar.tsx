@@ -1,11 +1,13 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { categories } from '@/lib/mockData';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { categoriesApi } from '@/lib/api';
+import type { CategoryDto } from '@/lib/api/types';
 
 interface FilterSidebarProps {
   onFiltersChange?: (filters: FilterState) => void;
@@ -20,11 +22,27 @@ export interface FilterState {
 export function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
 
   const selectedCategories = searchParams.get('categories')?.split(',') || [];
   const minPrice = Number(searchParams.get('minPrice')) || 0;
-  const maxPrice = Number(searchParams.get('maxPrice')) || 100;
+  const maxPrice = Number(searchParams.get('maxPrice')) || 5000;
   const sortBy = searchParams.get('sort') || 'popular';
+
+  useEffect(() => {
+    let cancelled = false;
+    categoriesApi
+      .list()
+      .then((res) => {
+        if (!cancelled) setCategories(res.data);
+      })
+      .catch(() => {
+        if (!cancelled) setCategories([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     const newCategories = checked
@@ -36,7 +54,7 @@ export function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
       params.set('categories', newCategories.join(','));
     }
     if (minPrice > 0) params.set('minPrice', minPrice.toString());
-    if (maxPrice < 100) params.set('maxPrice', maxPrice.toString());
+    if (maxPrice < 5000) params.set('maxPrice', maxPrice.toString());
     if (sortBy) params.set('sort', sortBy);
 
     router.push(`/shop?${params.toString()}`);
@@ -60,7 +78,7 @@ export function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
       params.set('categories', selectedCategories.join(','));
     }
     if (minPrice > 0) params.set('minPrice', minPrice.toString());
-    if (maxPrice < 100) params.set('maxPrice', maxPrice.toString());
+    if (maxPrice < 5000) params.set('maxPrice', maxPrice.toString());
     params.set('sort', newSort);
 
     router.push(`/shop?${params.toString()}`);
@@ -105,12 +123,12 @@ export function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
           {categories.map((category) => (
             <div key={category.id} className="flex items-center space-x-2">
               <Checkbox
-                id={category.id}
-                checked={selectedCategories.includes(category.id)}
-                onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
+                id={category.slug}
+                checked={selectedCategories.includes(category.slug)}
+                onCheckedChange={(checked) => handleCategoryChange(category.slug, !!checked)}
               />
-              <Label htmlFor={category.id} className="text-sm cursor-pointer">
-                {category.name} ({category.productCount})
+              <Label htmlFor={category.slug} className="text-sm cursor-pointer">
+                {category.name} ({category.productCount ?? 0})
               </Label>
             </div>
           ))}
@@ -122,8 +140,8 @@ export function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
         <h3 className="font-semibold text-foreground">Price Range</h3>
         <Slider
           min={0}
-          max={100}
-          step={5}
+          max={5000}
+          step={50}
           value={[minPrice, maxPrice]}
           onValueChange={handlePriceChange}
           className="w-full"

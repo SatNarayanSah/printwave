@@ -52,6 +52,12 @@ export class User {
   @Column("timestamp", { name: 'email_verification_expiry', nullable: true })
   emailVerificationExpiry!: Date | null;
 
+  @Column("varchar", { name: 'password_reset_token_hash', nullable: true })
+  passwordResetTokenHash!: string | null;
+
+  @Column("timestamp", { name: 'password_reset_expiry', nullable: true })
+  passwordResetExpiry!: Date | null;
+
   @Column("boolean", { name: 'is_active', default: true })
   isActive!: boolean;
 

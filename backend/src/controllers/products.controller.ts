@@ -2,9 +2,27 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/data-source.js';
 import { Product } from '../entities/Product.js';
+import { Review } from '../entities/Review.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
-import { Between, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { Between, FindOptionsWhere, ILike, In, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+
+const parseDecimal = (value: unknown) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+};
+
+const getPrimaryImageUrl = (images: { url: string; isPrimary: boolean; sortOrder: number }[] | undefined) => {
+  if (!images || images.length === 0) return null;
+  const primary = images.find(i => i.isPrimary);
+  if (primary) return primary.url;
+  const sorted = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+  return sorted[0]?.url ?? null;
+};
 
 export const getProducts = async (
   req: Request,
@@ -25,7 +43,14 @@ export const getProducts = async (
     const min = typeof minPrice === 'string' ? Number(minPrice) : undefined;
     const max = typeof maxPrice === 'string' ? Number(maxPrice) : undefined;
 
-    if (categorySlug) where.category = { slug: categorySlug };
+    if (categorySlug) {
+      const slugs = categorySlug
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      if (slugs.length === 1) where.category = { slug: slugs[0] };
+      if (slugs.length > 1) where.category = { slug: In(slugs) };
+    }
     if (searchTerm) where.name = ILike(`%${searchTerm}%`);
 
     const minValid = typeof min === 'number' && Number.isFinite(min);
@@ -44,8 +69,62 @@ export const getProducts = async (
         order: { createdAt: 'DESC' }
     });
 
+    const ids = products.map(p => p.id);
+    const reviewAggRows =
+      ids.length === 0
+        ? []
+        : await AppDataSource.getRepository(Review)
+            .createQueryBuilder('r')
+            .select('r.productId', 'productId')
+            .addSelect('COUNT(r.id)', 'reviewCount')
+            .addSelect('AVG(r.rating)', 'avgRating')
+            .where('r.isVisible = true')
+            .andWhere('r.productId IN (:...ids)', { ids })
+            .groupBy('r.productId')
+            .getRawMany<{
+              productId: string;
+              reviewCount: string;
+              avgRating: string;
+            }>();
+
+    const reviewAggMap = new Map(
+      reviewAggRows.map(r => [
+        r.productId,
+        { reviewCount: Number(r.reviewCount) || 0, avgRating: parseDecimal(r.avgRating) },
+      ])
+    );
+
+    const items = products.map(p => {
+      const agg = reviewAggMap.get(p.id) ?? { reviewCount: 0, avgRating: 0 };
+      const inStock = Array.isArray(p.variants) ? p.variants.some(v => (v.stock ?? 0) > 0) : true;
+
+      return {
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        description: p.description,
+        basePrice: parseDecimal(p.basePrice),
+        fabric: p.fabric,
+        gsm: p.gsm,
+        isCustomizable: p.isCustomizable,
+        isFeatured: p.isFeatured,
+        inStock,
+        primaryImageUrl: getPrimaryImageUrl(p.images),
+        reviewCount: agg.reviewCount,
+        avgRating: agg.avgRating,
+        category: p.category
+          ? {
+              id: p.category.id,
+              name: p.category.name,
+              slug: p.category.slug,
+              imageUrl: p.category.imageUrl ?? null,
+            }
+          : null,
+      };
+    });
+
     return res.json(
-      ApiResponse.ok(products, 'Products fetched', {
+      ApiResponse.ok(items, 'Products fetched', {
         page: pageNum,
         limit: limitNum,
         total,
@@ -75,7 +154,30 @@ export const getProductBySlug = async (
 
     if (!product) throw ApiError.notFound('Product not found');
 
-    return res.json(ApiResponse.ok(product));
+    const reviewCount = Array.isArray(product.reviews) ? product.reviews.filter(r => r.isVisible).length : 0;
+    const avgRating =
+      reviewCount === 0
+        ? 0
+        : product.reviews
+            .filter(r => r.isVisible)
+            .reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviewCount;
+
+    const inStock = Array.isArray(product.variants) ? product.variants.some(v => (v.stock ?? 0) > 0) : true;
+
+    const dto = {
+      ...product,
+      basePrice: parseDecimal(product.basePrice),
+      variants: (product.variants ?? []).map(v => ({
+        ...v,
+        priceAdj: parseDecimal(v.priceAdj),
+      })),
+      reviewCount,
+      avgRating,
+      inStock,
+      primaryImageUrl: getPrimaryImageUrl(product.images),
+    };
+
+    return res.json(ApiResponse.ok(dto));
   } catch (err) {
     next(err);
   }

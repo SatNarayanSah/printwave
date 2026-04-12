@@ -1,22 +1,22 @@
 import Link from 'next/link';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 export function Footer() {
   return (
-    <footer className="bg-primary text-primary-foreground">
+    <footer className="mt-16 border-t border-border/60 bg-background/40 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-primary-foreground rounded-lg flex items-center justify-center">
-                <span className="text-primary font-bold text-lg">PW</span>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-sm">
+                <Sparkles className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-bold text-lg">Printwave</span>
+              <span className="font-black text-lg tracking-tight">PrintWave</span>
             </div>
-            <p className="text-sm text-primary-foreground/80 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               High-quality print-on-demand products for your business and creative needs.
             </p>
             <div className="space-y-2">
@@ -49,22 +49,22 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=tshirts" className="hover:underline">
+                <Link href="/shop?categories=tshirts" className="hover:underline">
                   T-Shirts
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=mugs" className="hover:underline">
+                <Link href="/shop?categories=mugs" className="hover:underline">
                   Mugs
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=hoodies" className="hover:underline">
+                <Link href="/shop?categories=hoodies" className="hover:underline">
                   Hoodies
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=hats" className="hover:underline">
+                <Link href="/shop?categories=hats" className="hover:underline">
                   Hats
                 </Link>
               </li>
@@ -106,18 +106,18 @@ export function Footer() {
           {/* Newsletter */}
           <div>
             <h3 className="font-bold mb-4">Newsletter</h3>
-            <p className="text-sm text-primary-foreground/80 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Subscribe to get special offers and updates.
             </p>
             <div className="flex flex-col space-y-2">
               <Input
                 type="email"
                 placeholder="Your email"
-                className="bg-primary-foreground/20 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60"
+                className="bg-background/50"
               />
               <Button
                 size="sm"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 w-full"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground w-full"
               >
                 Subscribe
               </Button>
@@ -125,9 +125,9 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-primary-foreground/20 pt-8 flex flex-col sm:flex-row items-center justify-between">
-          <p className="text-sm text-primary-foreground/80">
-            &copy; 2024 Leo Printec. All rights reserved.
+        <div className="border-t border-border/60 pt-8 flex flex-col sm:flex-row items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} PrintWave. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 sm:mt-0">
             <a href="#" className="hover:underline text-sm">

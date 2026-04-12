@@ -13,7 +13,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || "password",
   database: process.env.DB_NAME || "printwave",
   synchronize: process.env.NODE_ENV !== "production", // Auto-sync schema in dev
-  logging: process.env.NODE_ENV === "development",
+  logging: process.env.NODE_ENV === "false–",
   entities: [process.env.NODE_ENV === "production" ? "dist/entities/**/*.js" : "src/entities/**/*.ts"],
   migrations: [process.env.NODE_ENV === "production" ? "dist/migrations/**/*.js" : "src/migrations/**/*.ts"],
   subscribers: [process.env.NODE_ENV === "production" ? "dist/subscribers/**/*.js" : "src/subscribers/**/*.ts"],

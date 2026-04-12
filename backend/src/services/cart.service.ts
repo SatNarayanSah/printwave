@@ -10,7 +10,7 @@ export const getOrCreateCart = async (userId: string) => {
   const cartRepo = AppDataSource.getRepository(Cart);
   let cart = await cartRepo.findOne({
     where: { userId },
-    relations: ['items', 'items.product', 'items.variant', 'items.designs', 'items.designs.design']
+    relations: ['items', 'items.product', 'items.product.images', 'items.variant', 'items.designs', 'items.designs.design']
   });
 
   if (!cart) {
@@ -23,16 +23,17 @@ export const getOrCreateCart = async (userId: string) => {
 };
 
 interface AddToCartPayload {
+  productId?: string;
   variantId: string;
   quantity: number;
   notes?: string;
   designs?: {
     designId: string;
-    face: string;
-    scale?: number;
+    areaName: string;
     positionX?: number;
     positionY?: number;
     rotation?: number;
+    scalePercent?: number;
   }[];
 }
 
@@ -45,6 +46,9 @@ export const addToCart = async (userId: string, data: AddToCartPayload) => {
   });
 
   if (!variant) throw ApiError.notFound('Product variant not found');
+  if (data.productId && data.productId !== variant.productId) {
+    throw ApiError.badRequest('Variant does not belong to the provided product');
+  }
 
   const cartItemRepo = AppDataSource.getRepository(CartItem);
   const cartItemDesignRepo = AppDataSource.getRepository(CartItemDesign);
@@ -65,10 +69,18 @@ export const addToCart = async (userId: string, data: AddToCartPayload) => {
   await cartItemRepo.save(cartItem);
 
   if (data.designs && data.designs.length > 0) {
-    const designs = data.designs.map((d: NonNullable<AddToCartPayload['designs']>[number]) => cartItemDesignRepo.create({
-      cartItemId: cartItem.id,
-      ...d
-    }));
+    const designs = data.designs.map(
+      (d: NonNullable<AddToCartPayload['designs']>[number]) =>
+        cartItemDesignRepo.create({
+          cartItemId: cartItem.id,
+          designId: d.designId,
+          areaName: d.areaName,
+          positionX: d.positionX ?? 0,
+          positionY: d.positionY ?? 0,
+          rotation: d.rotation ?? 0,
+          scalePercent: d.scalePercent ?? 100,
+        })
+    );
     await cartItemDesignRepo.save(designs);
   }
 

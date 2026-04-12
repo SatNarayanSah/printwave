@@ -1,132 +1,167 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Zap, Shield, Leaf } from 'lucide-react';
-import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
 import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
-import { products, categories } from '@/lib/mockData';
+import { categoriesApi, productsApi } from '@/lib/api';
+import { Card, CardContent } from '@/components/ui/card';
 
-export default function Home() {
-  const featuredProducts = products.slice(0, 6);
+export default async function Home() {
+  const [categoriesRes, productsRes] = await Promise.all([
+    categoriesApi.list(),
+    productsApi.list({ page: 1, limit: 6 }),
+  ]);
+
+  const categories = categoriesRes.data ?? [];
+  const featuredProducts = productsRes.data ?? [];
+
+  const categoryFallbackImage = (slug: string) => {
+    const map: Record<string, string> = {
+      tshirts: '/images/category-tshirts.jpg',
+      mugs: '/images/category-mugs.jpg',
+      hats: '/images/category-hats.jpg',
+      posters: '/images/category-posters.jpg',
+      hoodies: '/images/category-hoodies.jpg',
+      bags: '/images/category-bags.jpg',
+    };
+    return map[slug] ?? '/placeholder.svg';
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+    <div className="bg-background/30">
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/images/hero-banner.jpg"
+            alt="PrintWave"
+            fill
+            className="object-cover opacity-25"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/30 to-background" />
+        </div>
 
-      {/* Hero Section */}
-      <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
-        <Image
-          src="/images/hero-banner.jpg"
-          alt="Printwave Hero"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white space-y-6 px-4 max-w-2xl">
-            <h1 className="text-4xl md:text-6xl font-bold text-balance">
-              Premium Print-On-Demand Products
-            </h1>
-            <p className="text-lg md:text-xl text-white/90">
-              Create stunning custom products for your business. Hats, mugs, t-shirts, posters, and more.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Link href="/shop">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
-                  Shop Now <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
-              <Link href="#how-it-works">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">
-                  Learn More
-                </Button>
-              </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-3 py-1 text-sm backdrop-blur">
+                <span className="h-2 w-2 rounded-full bg-accent" />
+                Premium print-on-demand, made simple
+              </div>
+
+              <h1 className="text-4xl md:text-6xl font-black tracking-tight text-balance">
+                Design. Print. Ship. <span className="text-primary">Beautifully</span>.
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
+                Studio-quality products with fast turnaround and clean customization—built for brands, creators, and teams.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link href="/shop">
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
+                    Browse products <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link href="/account/designs">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                    Upload designs
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                {[
+                  { icon: Zap, title: 'Fast turnaround', desc: 'Reliable 3–5 day production.' },
+                  { icon: Shield, title: 'Quality first', desc: 'Durable materials, sharp prints.' },
+                  { icon: Leaf, title: 'Eco-aware', desc: 'Smarter processes, less waste.' },
+                ].map((f) => (
+                  <Card key={f.title} className="py-0">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-xl bg-primary/10 p-2">
+                          <f.icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">{f.title}</p>
+                          <p className="text-sm text-muted-foreground">{f.desc}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:col-span-5">
+              <Card className="overflow-hidden py-0">
+                <CardContent className="p-0">
+                  <div className="grid grid-cols-2 gap-0.5 bg-border/60">
+                    {['/images/product-1.jpg', '/images/product-2.jpg', '/images/product-5.jpg', '/images/product-8.jpg'].map((src) => (
+                      <div key={src} className="relative aspect-square overflow-hidden bg-muted">
+                        <Image src={src} alt="Product" fill className="object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Tip: Login to keep your cart synced across devices.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 md:py-24 bg-muted">
+      {/* Categories */}
+      <section className="py-14 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="p-3 bg-primary rounded-lg">
-                <Zap className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Fast Turnaround</h3>
-              <p className="text-muted-foreground">
-                Get your products printed and shipped within 3-5 business days.
-              </p>
+          <div className="flex items-end justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl md:text-4xl font-black tracking-tight">Shop by category</h2>
+              <p className="text-muted-foreground mt-2">Pick a base product, then customize the details.</p>
             </div>
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="p-3 bg-primary rounded-lg">
-                <Shield className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Quality Guaranteed</h3>
-              <p className="text-muted-foreground">
-                Premium materials and professional printing with 100% satisfaction guarantee.
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="p-3 bg-primary rounded-lg">
-                <Leaf className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Eco-Friendly</h3>
-              <p className="text-muted-foreground">
-                Sustainable printing practices using eco-friendly materials and processes.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Shop by Category</h2>
-            <p className="text-lg text-muted-foreground">
-              Browse our wide selection of customizable products.
-            </p>
+            <Link href="/shop" className="hidden sm:inline-flex">
+              <Button variant="outline">View all</Button>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <Link key={category.id} href={`/shop?category=${category.id}`}>
-                <div className="group relative h-64 rounded-lg overflow-hidden cursor-pointer">
-                  <Image
-                    src={category.image}
-                    alt={category.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white space-y-2">
-                    <h3 className="text-2xl font-bold">{category.name}</h3>
-                    <p className="text-sm text-white/90">{category.productCount} Products</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
+            {categories.slice(0, 6).map((category) => {
+              const img = category.imageUrl ?? categoryFallbackImage(category.slug);
+              return (
+                <Link key={category.id} href={`/shop?categories=${category.slug}`}>
+                  <Card className="group overflow-hidden py-0">
+                    <CardContent className="p-0">
+                      <div className="relative h-56">
+                        <Image src={img} alt={category.name} fill className="object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 flex items-end p-5">
+                          <div className="text-white">
+                            <p className="text-lg font-bold">{category.name}</p>
+                            <p className="text-sm text-white/80">{category.productCount} products</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 md:py-24 bg-muted">
+      <section className="py-14 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Featured Products</h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              Explore our best-selling products loved by customers worldwide.
-            </p>
-            <Link href="/shop">
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                View All Products <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
+          <div className="flex items-end justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl md:text-4xl font-black tracking-tight">Featured products</h2>
+              <p className="text-muted-foreground mt-2">Popular picks from our catalog.</p>
+            </div>
+            <Link href="/shop" className="hidden sm:inline-flex">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">Browse shop</Button>
             </Link>
           </div>
 
@@ -138,79 +173,78 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-16 md:py-24">
+      {/* How it works */}
+      <section id="how-it-works" className="py-14 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">How It Works</h2>
-            <p className="text-lg text-muted-foreground">
-              Simple steps to get your custom products.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-5">
+              <h2 className="text-2xl md:text-4xl font-black tracking-tight">How it works</h2>
+              <p className="text-muted-foreground mt-2">
+                A clean flow from idea to delivery—no complex setup.
+              </p>
+            </div>
+            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { step: '01', title: 'Choose product', desc: 'Pick items your customers love.' },
+                { step: '02', title: 'Upload design', desc: 'Add your artwork and notes.' },
+                { step: '03', title: 'Place order', desc: 'Checkout securely with eSewa.' },
+                { step: '04', title: 'We deliver', desc: 'Production + shipment updates.' },
+              ].map((s) => (
+                <Card key={s.step} className="py-0">
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground">{s.step}</p>
+                        <p className="font-semibold">{s.title}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{s.desc}</p>
+                      </div>
+                      <div className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center">
+                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[
-              {
-                step: 1,
-                title: 'Choose Product',
-                description: 'Select from our wide range of customizable items.',
-              },
-              {
-                step: 2,
-                title: 'Design',
-                description: 'Upload your design or use our design tools.',
-              },
-              {
-                step: 3,
-                title: 'Review',
-                description: 'Preview your product before placing an order.',
-              },
-              {
-                step: 4,
-                title: 'Ship',
-                description: 'We print and ship your order quickly and safely.',
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="relative">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-lg">
-                    {item.step}
+      {/* CTA */}
+      <section className="py-14 md:py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="py-0 overflow-hidden">
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 md:grid-cols-12">
+                <div className="md:col-span-7 p-8 md:p-10">
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight">
+                    Ready to launch your next drop?
+                  </h3>
+                  <p className="text-muted-foreground mt-2">
+                    Upload your design, pick variants, and place orders in minutes.
+                  </p>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <Link href="/shop">
+                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
+                        Start shopping <ArrowRight className="ml-2 w-4 h-4" />
+                      </Button>
+                    </Link>
+                    <Link href="/blog">
+                      <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                        Read the blog
+                      </Button>
+                    </Link>
                   </div>
-                  <h3 className="font-semibold text-foreground">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
                 </div>
-                {idx < 3 && (
-                  <div className="hidden md:block absolute top-6 left-[60%] w-[40%] h-0.5 bg-primary/30" />
-                )}
+                <div className="md:col-span-5 relative min-h-52">
+                  <Image src="/images/blog-2.jpg" alt="PrintWave" fill className="object-cover opacity-80" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-black/10 to-transparent" />
+                </div>
               </div>
-            ))}
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <h2 className="text-3xl md:text-4xl font-bold">Ready to Create Something Amazing?</h2>
-          <p className="text-lg text-primary-foreground/90">
-            Start designing your custom products today. Our team is here to help you every step of the way.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link href="/shop">
-              <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 w-full sm:w-auto">
-                Start Shopping <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="/blog">
-              <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10 w-full sm:w-auto">
-                Read Our Blog
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <Footer />
     </div>
   );
 }

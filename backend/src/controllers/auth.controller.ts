@@ -36,6 +36,8 @@ const generateTokens = (user: { id: string; role: string }) => {
   return { accessToken };
 };
 
+const sha256 = (value: string) => crypto.createHash('sha256').update(value).digest('hex');
+
 
 
 const sendVerificationEmail = async (user: User, token: string) => {
@@ -99,6 +101,57 @@ const sendVerificationEmail = async (user: User, token: string) => {
     const message = mailErr instanceof Error ? mailErr.message : String(mailErr);
     console.error(`❌ Failed to send email to ${user.email}:`, message);
     // Don't throw — registration still succeeded, user can use the console link
+  }
+};
+
+const sendPasswordResetEmail = async (user: User, token: string) => {
+  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const link = `${baseUrl}/auth/reset-password?token=${token}`;
+
+  console.log('\n=============================================');
+  console.log('🔒 PASSWORD RESET LINK:');
+  console.log(link);
+  console.log('=============================================\n');
+
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    console.warn('⚠️  SMTP not configured — email not sent. Use the link above.');
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: { user: smtpUser, pass: smtpPass },
+    tls: { rejectUnauthorized: false },
+  });
+
+  try {
+    await transporter.sendMail({
+      from: `"PrintWave Studio" <${smtpUser}>`,
+      to: user.email,
+      subject: 'Reset your PrintWave password',
+      html: `
+        <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px;">
+          <h2 style="color: #1E293B; font-size: 20px; font-weight: 800; margin: 0 0 8px;">Reset your password</h2>
+          <p style="color: #64748B; font-size: 14px; margin: 0 0 24px;">Hi ${user.firstName}, click below to reset your password. This link expires in 30 minutes.</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${link}" style="background: #1E293B; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block;">
+              Reset Password
+            </a>
+          </div>
+          <p style="color: #94A3B8; font-size: 12px; margin: 0;">If you didn’t request this, you can ignore this email.</p>
+        </div>
+      `,
+    });
+    console.log(`✅ Password reset email sent to ${user.email}`);
+  } catch (mailErr: unknown) {
+    const message = mailErr instanceof Error ? mailErr.message : String(mailErr);
+    console.error(`❌ Failed to send reset email to ${user.email}:`, message);
   }
 };
 
@@ -192,7 +245,14 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     // Set httpOnly cookie (no localStorage)
     res.cookie('pw_token', accessToken, COOKIE_OPTIONS);
 
-    const { passwordHash, emailVerificationToken, emailVerificationExpiry, ...safeUser } = user;
+    const {
+      passwordHash,
+      emailVerificationToken,
+      emailVerificationExpiry,
+      passwordResetTokenHash,
+      passwordResetExpiry,
+      ...safeUser
+    } = user;
 
     return res.json(ApiResponse.ok({ user: safeUser }, 'Login successful'));
   } catch (err) {
@@ -218,6 +278,61 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
 
     if (!user) throw ApiError.notFound('User not found');
     return res.json(ApiResponse.ok({ user }, 'User profile fetched'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = req.body as { email: string };
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOneBy({ email });
+
+    // Always return OK to avoid user enumeration
+    if (!user || !user.isActive) {
+      return res.json(ApiResponse.ok(null, 'If the email exists, a reset link has been sent.'));
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.passwordResetTokenHash = sha256(token);
+    user.passwordResetExpiry = new Date(Date.now() + 30 * 60 * 1000);
+    await userRepo.save(user);
+
+    sendPasswordResetEmail(user, token).catch(err => console.error('Failed to send password reset email:', err));
+
+    return res.json(ApiResponse.ok(null, 'If the email exists, a reset link has been sent.'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { token, password } = req.body as { token: string; password: string };
+    const tokenHash = sha256(token);
+
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOneBy({ passwordResetTokenHash: tokenHash });
+
+    if (!user || !user.passwordResetExpiry) {
+      throw ApiError.badRequest('Invalid or expired reset token');
+    }
+
+    if (new Date() > user.passwordResetExpiry) {
+      user.passwordResetTokenHash = null;
+      user.passwordResetExpiry = null;
+      await userRepo.save(user);
+      throw ApiError.badRequest('Invalid or expired reset token');
+    }
+
+    user.passwordHash = await bcrypt.hash(password, 12);
+    user.passwordResetTokenHash = null;
+    user.passwordResetExpiry = null;
+    await userRepo.save(user);
+
+    res.clearCookie('pw_token', { path: '/' });
+    return res.json(ApiResponse.ok(null, 'Password reset successful. Please log in.'));
   } catch (err) {
     next(err);
   }

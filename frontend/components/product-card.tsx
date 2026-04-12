@@ -1,33 +1,27 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Star, ShoppingCart } from 'lucide-react';
-import { Product } from '@/lib/mockData';
 import { Button } from '@/components/ui/button';
+import type { ProductListItemDto } from '@/lib/api/types';
 
 interface ProductCardProps {
-  product: Product;
+  product: ProductListItemDto;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const discountPercent = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  const rating = Number.isFinite(product.avgRating) ? product.avgRating : 0;
+  const imageUrl = product.primaryImageUrl ?? '/placeholder.svg';
 
   return (
-    <Link href={`/products/${product.id}`}>
+    <Link href={`/products/${product.slug}`}>
       <div className="group cursor-pointer h-full">
         <div className="relative overflow-hidden rounded-lg bg-muted aspect-square mb-4">
           <Image
-            src={product.image}
+            src={imageUrl}
             alt={product.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          {discountPercent > 0 && (
-            <div className="absolute top-3 right-3 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">
-              -{discountPercent}%
-            </div>
-          )}
           {!product.inStock && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <span className="text-white font-bold">Out of Stock</span>
@@ -40,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.name}
           </h3>
 
-          <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-1">{product.description ?? ''}</p>
 
           <div className="flex items-center space-x-1">
             <div className="flex items-center space-x-0.5">
@@ -48,24 +42,19 @@ export function ProductCard({ product }: ProductCardProps) {
                 <Star
                   key={i}
                   className={`w-4 h-4 ${
-                    i < Math.floor(product.rating)
+                    i < Math.floor(rating)
                       ? 'fill-accent text-accent'
                       : 'text-muted-foreground'
                   }`}
                 />
               ))}
             </div>
-            <span className="text-xs text-muted-foreground">({product.reviews})</span>
+            <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
           </div>
 
           <div className="flex items-center justify-between pt-2">
             <div className="flex items-baseline space-x-2">
-              <span className="font-bold text-lg text-foreground">${product.price.toFixed(2)}</span>
-              {product.originalPrice && (
-                <span className="text-sm text-muted-foreground line-through">
-                  ${product.originalPrice.toFixed(2)}
-                </span>
-              )}
+              <span className="font-bold text-lg text-foreground">${product.basePrice.toFixed(2)}</span>
             </div>
           </div>
 
@@ -74,7 +63,7 @@ export function ProductCard({ product }: ProductCardProps) {
             disabled={!product.inStock}
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+            {product.inStock ? 'View Details' : 'Out of Stock'}
           </Button>
         </div>
       </div>

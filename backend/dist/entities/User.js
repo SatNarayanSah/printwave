@@ -27,6 +27,8 @@ let User = class User {
     isVerified;
     emailVerificationToken;
     emailVerificationExpiry;
+    passwordResetTokenHash;
+    passwordResetExpiry;
     isActive;
     avatarUrl;
     createdAt;
@@ -82,6 +84,14 @@ __decorate([
     Column("timestamp", { name: 'email_verification_expiry', nullable: true }),
     __metadata("design:type", Object)
 ], User.prototype, "emailVerificationExpiry", void 0);
+__decorate([
+    Column("varchar", { name: 'password_reset_token_hash', nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "passwordResetTokenHash", void 0);
+__decorate([
+    Column("timestamp", { name: 'password_reset_expiry', nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "passwordResetExpiry", void 0);
 __decorate([
     Column("boolean", { name: 'is_active', default: true }),
     __metadata("design:type", Boolean)
