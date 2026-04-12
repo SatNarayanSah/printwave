@@ -34,7 +34,7 @@ project.fragment.lock.json
 *.nuget.props
 *.nuget.targets
 NuGet.Config.user
-
+node_modules
 # --- Node / Next.js ---
 **/node_modules/
 **/.next/
@@ -51,3 +51,15 @@ NuGet.Config.user
 /backend/dist/
 /backend/logs/
 /backend/tmp/
+
+# --- Frontend ---
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/coverage/
+/frontend/.pnp
+/frontend/.pnp.*
+/frontend/.turbo/
+/frontend/.vercel/
+/frontend/.cache/
+/frontend/*.tsbuildinfo

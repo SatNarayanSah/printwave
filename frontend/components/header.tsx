@@ -3,10 +3,19 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, Search, ShoppingCart, LogIn, LogOut, User } from 'lucide-react';
+import { Menu, X, Search, ShoppingCart, LogIn, LogOut, User, LayoutDashboard, Settings } from 'lucide-react';
 import { useCart } from '@/lib/cartContext';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/authContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -65,22 +74,51 @@ export function Header() {
 
             {user ? (
               <div className="hidden sm:flex items-center gap-2">
-                <Link
-                  href="/account/orders"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted/60 text-sm"
-                >
-                  <User className="w-4 h-4" />
-                  <span className="max-w-28 truncate">{user.firstName}</span>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => logout()}
-                  className="hidden md:inline-flex"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-muted/60 transition-colors focus:outline-none">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.avatarUrl || ''} alt={user.firstName} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                          {user.firstName.charAt(0)}{user.lastName?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="hidden md:flex flex-col items-start leading-none gap-1">
+                        <span className="text-sm font-medium leading-none">{user.firstName} {user.lastName}</span>
+                        <span className="text-xs text-muted-foreground leading-none capitalize">{user.role}</span>
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.firstName} {user.lastName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link href="/account/dashboard">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link href="/account/settings">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => logout()} 
+                      className="cursor-pointer text-destructive focus:bg-destructive/10"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ) : (
               <Link href="/auth/login" className="hidden sm:inline-flex">

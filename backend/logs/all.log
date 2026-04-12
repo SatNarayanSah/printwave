@@ -151,3 +151,16 @@
 2026-04-12 18:33:21:3321 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
 2026-04-12 18:35:24:3524 [32minfo[39m: [32mDatabase connection established[39m
 2026-04-12 18:35:25:3525 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-12 22:05:45:545 [31merror[39m: [31mInitialization failed connect ECONNREFUSED 127.0.0.1:5432[39m
+2026-04-12 22:22:11:2211 [31merror[39m: [31mInitialization failed connect ECONNREFUSED 127.0.0.1:5432[39m
+2026-04-12 22:23:43:2343 [31merror[39m: [31mInitialization failed connect ECONNREFUSED 127.0.0.1:5432[39m
+2026-04-12 22:50:04:504 [31merror[39m: [31mInitialization failed database "printwave" does not exist[39m
+2026-04-12 22:51:44:5144 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-12 22:51:44:5144 [32minfo[39m: [32mDefault admin created: satyamsah086@gmail.com[39m
+2026-04-12 22:51:44:5144 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-12 22:52:13:5213 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-12 22:52:43:5243 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-12 23:32:46:3246 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-12 23:32:46:3246 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-12 23:34:38:3438 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-12 23:34:38:3438 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
