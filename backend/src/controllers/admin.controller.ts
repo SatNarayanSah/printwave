@@ -3,11 +3,12 @@ import { AppDataSource } from '../config/data-source.js';
 import { Product } from '../entities/Product.js';
 import { Order } from '../entities/Order.js';
 import { CustomDesign } from '../entities/CustomDesign.js';
+import { Coupon } from '../entities/Coupon.js';
 import { User } from '../entities/User.js';
 import { Category } from '../entities/Category.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
-import { OrderStatus, UserRole } from '../types/enums.js';
+import { OrderStatus, UserRole, CouponType } from '../types/enums.js';
 import bcrypt from 'bcryptjs';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
@@ -301,13 +302,18 @@ export const getAdminUsers = async (req: Request, res: Response, next: NextFunct
   try {
     const userRepo = AppDataSource.getRepository(User);
     const users = await userRepo.find({
+      relations: ['orders', 'designs'],
       order: { createdAt: 'DESC' }
     });
     
-    // Omit sensitive data
+    // Omit sensitive data and format counts
     const safeUsers = users.map(u => {
-      const { passwordHash, passwordResetTokenHash, ...safe } = u;
-      return safe;
+      const { passwordHash, passwordResetTokenHash, orders, designs, ...safe } = u;
+      return {
+        ...safe,
+        orderCount: orders?.length || 0,
+        designCount: designs?.length || 0
+      };
     });
 
     res.json(ApiResponse.ok(safeUsers));
@@ -375,4 +381,59 @@ export const updateDesignStatus = async (req: Request, res: Response, next: Next
   } catch (error) {
     next(error);
   }
+};
+
+// --- COUPONS ---
+
+export const getAdminCoupons = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const repo = AppDataSource.getRepository(Coupon);
+    const coupons = await repo.find({ order: { createdAt: 'DESC' } });
+    res.json(ApiResponse.ok(coupons));
+  } catch (error) { next(error); }
+};
+
+export const createCoupon = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { code, type, value, minOrderAmount, maxUses, expiresAt, isActive } = req.body;
+    const repo = AppDataSource.getRepository(Coupon);
+
+    const existing = await repo.findOneBy({ code: String(code).toUpperCase() });
+    if (existing) throw ApiError.badRequest('Coupon code already exists.');
+
+    const coupon = repo.create({
+      code: String(code).toUpperCase(),
+      type: type || CouponType.PERCENTAGE,
+      value,
+      minOrderAmount: minOrderAmount || null,
+      maxUses: maxUses || null,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      isActive: isActive !== undefined ? isActive : true,
+    });
+    const saved = await repo.save(coupon);
+    res.status(201).json(ApiResponse.created(saved));
+  } catch (error) { next(error); }
+};
+
+export const updateCoupon = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const repo = AppDataSource.getRepository(Coupon);
+    const coupon = await repo.findOneBy({ id });
+    if (!coupon) throw ApiError.notFound('Coupon not found');
+    Object.assign(coupon, req.body);
+    const saved = await repo.save(coupon);
+    res.json(ApiResponse.ok(saved, 'Coupon updated'));
+  } catch (error) { next(error); }
+};
+
+export const deleteCoupon = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const repo = AppDataSource.getRepository(Coupon);
+    const coupon = await repo.findOneBy({ id });
+    if (!coupon) throw ApiError.notFound('Coupon not found');
+    await repo.remove(coupon);
+    res.json(ApiResponse.ok(null, 'Coupon deleted'));
+  } catch (error) { next(error); }
 };

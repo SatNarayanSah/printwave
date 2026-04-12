@@ -2,12 +2,10 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { 
   Bell, 
   Search, 
-  Menu,
-  ChevronRight,
   Home
 } from 'lucide-react';
 
@@ -25,6 +23,21 @@ import {
   BreadcrumbSeparator 
 } from '@/components/ui/breadcrumb';
 
+const PAGE_NAMES: Record<string, string> = {
+  '/admin': 'Dashboard',
+  '/admin/users': 'User Management',
+  '/admin/products': 'Product Management',
+  '/admin/orders': 'Order Management',
+  '/admin/designs': 'Design Management',
+  '/admin/shipping': 'Shipping Control',
+  '/admin/production': 'Production Queue',
+  '/admin/finance': 'Finance & Payments',
+  '/admin/marketing': 'Marketing & Promotions',
+  '/admin/analytics': 'Reports & Analytics',
+  '/admin/cms': 'Content Management',
+  '/admin/settings': 'Global Settings',
+};
+
 export default function AdminLayout({
   children,
 }: {
@@ -32,6 +45,7 @@ export default function AdminLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   React.useEffect(() => {
     if (!loading && (!user || String(user.role).toUpperCase() !== 'ADMIN')) {
@@ -54,6 +68,9 @@ export default function AdminLayout({
     return null;
   }
 
+  // Find best matching breadcrumb name
+  const pageName = PAGE_NAMES[pathname] ?? PAGE_NAMES[Object.keys(PAGE_NAMES).find(k => k !== '/admin' && pathname.startsWith(k)) ?? ''] ?? 'Admin';
+
   return (
     <SidebarProvider>
       <AdminSidebar />
@@ -70,10 +87,14 @@ export default function AdminLayout({
                     Admin
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
-                </BreadcrumbItem>
+                {pathname !== '/admin' && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>{pageName}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                )}
               </BreadcrumbList>
             </Breadcrumb>
           </div>
@@ -105,3 +126,4 @@ export default function AdminLayout({
     </SidebarProvider>
   );
 }
+

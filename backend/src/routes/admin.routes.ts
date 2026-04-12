@@ -3,12 +3,10 @@ import {
     getDashboardStats, 
     getAdminProducts, createProduct, updateProduct, deleteProduct,
     getAdminOrders, updateOrderStatus,
-    getAdminDesigns,
+    getAdminDesigns, updateDesignStatus,
     createDesignerAccount,
-    getAdminUsers,
-    updateUserRole,
-    updateUserStatus,
-    updateDesignStatus
+    getAdminUsers, updateUserRole, updateUserStatus,
+    getAdminCoupons, createCoupon, updateCoupon, deleteCoupon,
 } from '../controllers/admin.controller.js';
 import { authenticate, authorize } from '../middleware/authenticate.js';
 import { validate } from '../middleware/validate.js';
@@ -36,5 +34,11 @@ router.post('/designers', validate(createDesignerSchema), createDesignerAccount)
 router.get('/users', getAdminUsers);
 router.put('/users/:id/role', updateUserRole);
 router.put('/users/:id/status', updateUserStatus);
+
+// Coupon / Marketing
+router.get('/coupons', getAdminCoupons);
+router.post('/coupons', createCoupon);
+router.put('/coupons/:id', updateCoupon);
+router.delete('/coupons/:id', deleteCoupon);
 
 export default router;

@@ -67,6 +67,29 @@ export default function OrderManagementPage() {
     }
   };
 
+  const exportCSV = () => {
+    const rows = [
+      ['Order ID', 'Customer', 'City', 'Items', 'Total (रू)', 'Status', 'Date'],
+      ...filteredOrders.map(o => [
+        `#${o.orderNumber || o.id.substring(0, 8).toUpperCase()}`,
+        o.user ? `${o.user.firstName} ${o.user.lastName}` : 'Guest',
+        o.address?.city || 'N/A',
+        o.items?.reduce((acc: number, i: any) => acc + i.quantity, 0) || 0,
+        Number(o.total).toFixed(2),
+        o.status,
+        new Date(o.createdAt).toLocaleDateString(),
+      ])
+    ];
+    const csv = rows.map(r => r.map(String).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const filteredOrders = ordersList.filter(order => {
     if (filterStatus !== 'All' && order.status !== filterStatus.toUpperCase() && order.status !== filterStatus) {
       return false;
@@ -102,7 +125,7 @@ export default function OrderManagementPage() {
           <p className="text-muted-foreground mt-1">Track and manage customer orders across all stages.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="font-bold gap-2 rounded-full">
+          <Button variant="outline" className="font-bold gap-2 rounded-full" onClick={exportCSV}>
             <Download className="h-4 w-4" />
             Export CSV
           </Button>
@@ -271,8 +294,10 @@ export default function OrderManagementPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">You have 5 orders ready for local delivery in Janakpur.</p>
-              <Button variant="outline" className="w-full font-bold text-xs uppercase tracking-wide rounded-xl">Generate Delivery Run Sheet</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                You have <strong>{getStatusCount('READY_FOR_PICKUP')}</strong> orders ready for pickup and <strong>{getStatusCount('SHIPPED')}</strong> currently in transit.
+              </p>
+              <Button variant="outline" className="w-full font-bold text-xs uppercase tracking-wide rounded-xl" onClick={() => window.location.href = '/admin/shipping'}>View Shipping Control</Button>
             </CardContent>
          </Card>
          <Card className="border-border/40 shadow-sm border-l-4 border-l-purple-500">
@@ -283,8 +308,10 @@ export default function OrderManagementPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">3 New custom designs confirmed and ready for printing machines.</p>
-              <Button variant="outline" className="w-full font-bold text-xs uppercase tracking-wide rounded-xl">View Production Queue</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                <strong>{getStatusCount('PRINTING')}</strong> orders currently printing. <strong>{getStatusCount('QUALITY_CHECK')}</strong> awaiting quality inspection.
+              </p>
+              <Button variant="outline" className="w-full font-bold text-xs uppercase tracking-wide rounded-xl" onClick={() => window.location.href = '/admin/production'}>View Production Queue</Button>
             </CardContent>
          </Card>
       </div>
