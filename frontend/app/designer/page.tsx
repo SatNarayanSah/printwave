@@ -114,7 +114,7 @@ export default function DesignerDashboardPage() {
       {/* Stats - Compact Grid */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {statCards.map((s) => (
-          <Card key={s.title} className="border-border/40 bg-card/40 backdrop-blur-sm shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden">
+          <Card key={s.title} className="border-border/40 bg-card/40 shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3 px-4">
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">{s.title}</span>
               <div className={`h-6 w-6 rounded-lg flex items-center justify-center ${s.color.split(' ')[0]} bg-opacity-10`}>
@@ -132,7 +132,7 @@ export default function DesignerDashboardPage() {
       {/* Main Content - Tighter Layout */}
       <div className="grid gap-4 lg:grid-cols-12">
         {/* Recent Designs */}
-        <Card className="lg:col-span-7 border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl">
+        <Card className="lg:col-span-7 border-border/40 bg-card/30 shadow-sm rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between py-3 px-5 border-b border-border/20">
             <div>
               <CardTitle className="text-sm font-black uppercase tracking-tight">Recent Studio Work</CardTitle>
@@ -174,7 +174,7 @@ export default function DesignerDashboardPage() {
         </Card>
 
         {/* Recent Orders */}
-        <Card className="lg:col-span-5 border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl">
+        <Card className="lg:col-span-5 border-border/40 bg-card/30 shadow-sm rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between py-3 px-5 border-b border-border/20">
             <div>
               <CardTitle className="text-sm font-black uppercase tracking-tight">Latest Earnings</CardTitle>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Minus, Plus, ShoppingCart, Star } from 'lucide-react';
@@ -11,14 +11,16 @@ import { productsApi, reviewsApi } from '@/lib/api';
 import type { ProductDetailDto, ReviewDto } from '@/lib/api/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn, getMediaUrl } from '@/lib/utils';
 
 interface ProductDetailPageProps {
-  params: {
+  params: Promise<{
     id: string; // product slug
-  };
+  }>;
 }
 
 export default function ProductDetailPage({ params }: ProductDetailPageProps) {
+  const { id } = use(params);
   const { addItem } = useCart();
   const { user } = useAuth();
 
@@ -43,7 +45,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     setLoading(true);
 
     productsApi
-      .getBySlug(params.id)
+      .getBySlug(id)
       .then((res) => {
         if (cancelled) return;
         setProduct(res.data);
@@ -63,7 +65,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [params.id]);
+  }, [id]);
 
   useEffect(() => {
     if (!product?.id) return;
@@ -88,11 +90,11 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   };
 
   const images = product?.images ?? [];
-  const primaryImage =
+  const primaryImage = getMediaUrl(
     product?.primaryImageUrl ||
     images.find((i) => i.isPrimary)?.url ||
-    [...images].sort((a, b) => a.sortOrder - b.sortOrder)[0]?.url ||
-    '/placeholder.svg';
+    [...images].sort((a, b) => a.sortOrder - b.sortOrder)[0]?.url
+  );
 
   const colors = useMemo(() => {
     const seen = new Map<string, string>();
@@ -168,7 +170,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
               <CardContent className="p-0">
                 <div className="relative bg-muted aspect-square">
                   <Image
-                    src={selectedVariant?.imageUrl || primaryImage}
+                    src={getMediaUrl(selectedVariant?.imageUrl) || primaryImage}
                     alt={product.name}
                     fill
                     className="object-cover"
@@ -403,6 +405,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
               <p className="text-muted-foreground">No reviews yet.</p>
             )}
         </div>
+      </div>
     </div>
   );
 }

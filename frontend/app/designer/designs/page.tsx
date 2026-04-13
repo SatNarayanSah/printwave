@@ -233,7 +233,7 @@ export default function DesignerDesignsPage() {
         </div>
 
         {/* Filters */}
-        <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden">
+        <Card className="border-border/40 bg-card/30 shadow-sm rounded-2xl overflow-hidden">
           <CardHeader className="border-b border-border/20 py-2 px-4 bg-muted/20">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <Tabs value={tab} onValueChange={setTab} className="w-fit">

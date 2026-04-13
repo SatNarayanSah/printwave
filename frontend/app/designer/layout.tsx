@@ -62,7 +62,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
     <SidebarProvider>
       <DesignerSidebar />
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/20 bg-background/60 backdrop-blur-md px-4">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/20 bg-background/60 px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="h-4 w-[1px] bg-border/40 mx-1" />
           <div className="hidden md:flex flex-1 items-center">

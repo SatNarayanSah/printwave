@@ -86,7 +86,7 @@ function AddUserModal({ open, onClose, onSave }: { open: boolean; onClose: () =>
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md p-6 space-y-4 rounded-xl shadow-2xl border-border/40 backdrop-blur-3xl">
+      <DialogContent className="sm:max-w-md p-6 space-y-4 rounded-xl shadow-2xl border-border/40">
         <DialogHeader>
           <DialogTitle className="text-xl font-black">Add Staff Account</DialogTitle>
         </DialogHeader>

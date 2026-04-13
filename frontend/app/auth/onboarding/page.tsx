@@ -63,7 +63,7 @@ export default function OnboardingPage() {
   if (success) {
     return (
       <div className="flex items-center justify-center min-h-[80vh] px-4 animate-in fade-in duration-700">
-        <Card className="w-full max-w-md border-border/40 shadow-2xl rounded-[2.5rem] text-center p-12 space-y-6 bg-background/60 backdrop-blur-xl">
+        <Card className="w-full max-w-md border-border/40 shadow-2xl rounded-[2.5rem] text-center p-12 space-y-6 bg-background/60 ">
           <div className="flex justify-center">
             <div className="h-24 w-24 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce shadow-inner shadow-emerald-500/20">
               <CheckCircle2 className="h-12 w-12" />
@@ -85,7 +85,7 @@ export default function OnboardingPage() {
     <div className="flex items-center justify-center min-h-[85vh] px-4 py-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,var(--primary-hover)_0%,transparent_25%),radial-gradient(circle_at_bottom_left,var(--accent)_0%,transparent_25%)] opacity-10" />
       
-      <Card className="w-full max-w-md border-border/40 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] rounded-[3rem] overflow-hidden bg-background/60 backdrop-blur-2xl">
+      <Card className="w-full max-w-md border-border/40 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] rounded-[3rem] overflow-hidden bg-background/60">
         <CardHeader className="pt-12 pb-4 px-10 text-center space-y-4">
           <div className="flex justify-center mb-2">
             <div className="p-5 bg-primary/10 rounded-[2rem] text-primary shadow-inner shadow-primary/5 ring-1 ring-primary/20">

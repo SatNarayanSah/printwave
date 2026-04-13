@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/data-source.js';
 import { Category } from '../entities/Category.js';
+import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 
 export const getCategories = async (_req: Request, res: Response, next: NextFunction) => {
@@ -39,6 +40,30 @@ export const getCategories = async (_req: Request, res: Response, next: NextFunc
     }));
 
     return res.json(ApiResponse.ok(categories, 'Categories fetched'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { name, slug, description } = req.body;
+    const categoryRepo = AppDataSource.getRepository(Category);
+
+    const existing = await categoryRepo.findOneBy({ slug });
+    if (existing) {
+      throw ApiError.badRequest('Category slug already exists');
+    }
+
+    const category = categoryRepo.create({
+      name,
+      slug,
+      description,
+      isActive: true,
+    });
+
+    const saved = await categoryRepo.save(category);
+    return res.status(201).json(ApiResponse.created(saved, 'Category created successfully'));
   } catch (err) {
     next(err);
   }

@@ -109,7 +109,7 @@ export default function DesignerSettingsPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Account Info (read-only) */}
-        <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden h-fit">
+        <Card className="border-border/40 bg-card/30 shadow-sm rounded-2xl overflow-hidden h-fit">
           <CardHeader className="border-b border-border/20 bg-muted/20 py-3 px-5 flex flex-row items-center justify-between">
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Account DNA</span>
             <Badge className="bg-primary/10 text-primary border-none font-black text-[9px] px-2 h-4 rounded-sm">
@@ -128,7 +128,7 @@ export default function DesignerSettingsPage() {
         </Card>
 
         {/* Edit Profile */}
-        <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden">
+        <Card className="border-border/40 bg-card/30  shadow-sm rounded-2xl overflow-hidden">
           <CardHeader className="border-b border-border/20 bg-muted/20 py-3 px-5">
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Public Identity</span>
           </CardHeader>
@@ -181,7 +181,7 @@ export default function DesignerSettingsPage() {
       </div>
 
       {/* Change Password */}
-      <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden max-w-xl">
+      <Card className="border-border/40 bg-card/30 shadow-sm rounded-2xl overflow-hidden max-w-xl">
         <CardHeader className="border-b border-border/20 bg-muted/20 py-3 px-5">
           <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 flex items-center gap-2">
             <Lock className="h-3 w-3" /> Security Access

@@ -3,9 +3,9 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { 
-  Bell, 
-  Search, 
+import {
+  Bell,
+  Search,
   Home
 } from 'lucide-react';
 
@@ -14,13 +14,13 @@ import { AdminSidebar } from '@/components/admin-sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/authContext';
-import { 
-  Breadcrumb, 
-  BreadcrumbItem, 
-  BreadcrumbLink, 
-  BreadcrumbList, 
-  BreadcrumbPage, 
-  BreadcrumbSeparator 
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
 
 const PAGE_NAMES: Record<string, string> = {
@@ -79,7 +79,7 @@ export default function AdminLayout({
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border/40 bg-background/80 backdrop-blur-md px-4">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border/40 bg-background px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="h-4 w-[1px] bg-border/60 mx-1" />
           <div className="hidden md:flex flex-1 items-center gap-4">
@@ -121,7 +121,7 @@ export default function AdminLayout({
             </div>
           </div>
         </header>
-        <main className="p-6 md:p-8">
+        <main className="p-2">
           <div className="mx-auto max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500">
             {children}
           </div>

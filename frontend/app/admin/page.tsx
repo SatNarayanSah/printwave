@@ -1,13 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { 
-  Users, 
-  Package, 
-  Palette, 
-  ShoppingCart, 
-  TrendingUp, 
-  ArrowUpRight, 
+import {
+  Users,
+  Package,
+  Palette,
+  ShoppingCart,
+  TrendingUp,
+  ArrowUpRight,
   ArrowDownRight,
   Clock,
   Loader2,
@@ -27,13 +27,13 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
 
 export default function AdminDashboardPage() {
@@ -140,11 +140,10 @@ export default function AdminDashboardPage() {
                 ) : (
                   <Clock className="h-4 w-4 text-amber-500" />
                 )}
-                <span className={`text-xs font-bold ${
-                  stat.trend === 'up' ? 'text-emerald-500' 
-                  : stat.trend === 'down' ? 'text-destructive' 
-                  : 'text-amber-500'
-                }`}>
+                <span className={`text-xs font-bold ${stat.trend === 'up' ? 'text-emerald-500'
+                    : stat.trend === 'down' ? 'text-destructive'
+                      : 'text-amber-500'
+                  }`}>
                   {stat.change}
                 </span>
               </div>
@@ -189,21 +188,21 @@ export default function AdminDashboardPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                     />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                       tickFormatter={(v) => `रू${Number(v).toLocaleString()}`}
                     />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))', 
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
                         borderColor: 'hsl(var(--border))',
                         borderRadius: '12px',
                         fontSize: '12px',
@@ -211,13 +210,13 @@ export default function AdminDashboardPage() {
                       }}
                       formatter={(value: any) => [`रू ${Number(value).toLocaleString()}`, 'Revenue']}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="hsl(var(--primary))" 
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="hsl(var(--primary))"
                       strokeWidth={3}
-                      fillOpacity={1} 
-                      fill="url(#colorRevenue)" 
+                      fillOpacity={1}
+                      fill="url(#colorRevenue)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -244,9 +243,9 @@ export default function AdminDashboardPage() {
                   <span className="text-muted-foreground font-medium flex-shrink-0">{product.sales} sold</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-muted/60 overflow-hidden">
-                  <div 
+                  <div
                     className={`h-full transition-all duration-700 ${COLORS[idx % COLORS.length]}`}
-                    style={{ width: `${Math.round((product.sales / maxSales) * 100)}%` }} 
+                    style={{ width: `${Math.round((product.sales / maxSales) * 100)}%` }}
                   />
                 </div>
               </div>
@@ -287,8 +286,8 @@ export default function AdminDashboardPage() {
                   </TableCell>
                 </TableRow>
               ) : recentOrders.map((order: any) => {
-                const customerName = order.user 
-                  ? `${order.user.firstName} ${order.user.lastName}` 
+                const customerName = order.user
+                  ? `${order.user.firstName} ${order.user.lastName}`
                   : 'Guest';
                 const totalItems = order.items?.reduce((acc: number, i: any) => acc + i.quantity, 0) || 0;
                 const productNames = order.items
@@ -312,8 +311,8 @@ export default function AdminDashboardPage() {
                       {new Date(order.createdAt).toLocaleDateString('en-NP', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </TableCell>
                     <TableCell>
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className={`
                           border-none font-bold text-[10px] uppercase tracking-wider
                           ${order.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500' : ''}
@@ -332,9 +331,9 @@ export default function AdminDashboardPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="h-8 font-bold text-xs hover:bg-primary/10 hover:text-primary"
                         onClick={() => window.location.href = '/admin/orders'}
                       >

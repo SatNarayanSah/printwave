@@ -136,8 +136,8 @@ export function AdminSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={
-                      item.url === '/admin' 
-                        ? pathname === '/admin' 
+                      item.url === '/admin'
+                        ? pathname === '/admin'
                         : pathname === item.url || pathname.startsWith(item.url + '/')
                     }
                     tooltip={item.title}
@@ -165,7 +165,7 @@ export function AdminSidebar() {
                 <span className="text-xs text-muted-foreground truncate">{user?.email || 'admin@persomith.com'}</span>
               </div>
             </div>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               onClick={() => logout()}
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >

@@ -28,7 +28,7 @@ export default function BlogPage() {
                 <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-black/15 to-transparent" />
               </div>
               <div className="md:col-span-6 p-7 md:p-10 space-y-5">
-                <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-3 py-1 text-sm backdrop-blur">
+                <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-3 py-1 text-sm">
                   <span className="h-2 w-2 rounded-full bg-accent" />
                   Featured
                 </div>

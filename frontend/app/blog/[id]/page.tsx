@@ -42,7 +42,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
         </Link>
 
         <header className="mb-6 space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-3 py-1 text-sm backdrop-blur">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-3 py-1 text-sm">
             <span className="h-2 w-2 rounded-full bg-accent" />
             {post.category}
           </div>

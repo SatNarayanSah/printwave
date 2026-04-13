@@ -32,7 +32,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/40 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -102,8 +102,8 @@ export function Header() {
                         user.role?.toUpperCase() === 'ADMIN'
                           ? '/admin'
                           : user.role?.toUpperCase() === 'DESIGNER'
-                          ? '/designer'
-                          : '/account/orders'
+                            ? '/designer'
+                            : '/account/orders'
                       }>
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         <span>Dashboard</span>
@@ -116,8 +116,8 @@ export function Header() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => logout()} 
+                    <DropdownMenuItem
+                      onClick={() => logout()}
                       className="cursor-pointer text-destructive focus:bg-destructive/10"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
@@ -144,8 +144,8 @@ export function Header() {
               )}
             </Link>
 
-          {/* Mobile menu button */}
-          <button
+            {/* Mobile menu button */}
+            <button
               className="p-2 md:hidden hover:bg-muted/60 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >

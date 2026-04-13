@@ -125,6 +125,7 @@ export const adminApi = {
   deleteUser: (id: string) =>
     apiDelete<null>(`/api/admin/users/${encodeURIComponent(id)}`),
   createDesignerAccount: (payload: any) => apiPost<unknown>('/api/admin/designers', payload),
+  createCategory: (payload: { name: string; slug: string; description?: string }) => apiPost<unknown>('/api/categories', payload),
 };
 
 // ---- Designer ----

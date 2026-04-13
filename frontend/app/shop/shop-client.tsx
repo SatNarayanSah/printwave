@@ -127,6 +127,7 @@ export default function ShopClient() {
               )}
             </div>
           </div>
+        </div>
     </div>
   );
 }
