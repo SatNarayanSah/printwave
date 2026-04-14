@@ -1,7 +1,7 @@
 // src/controllers/products.controller.ts
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/data-source.js';
-import { Product } from '../entities/Product.js';
+import { Product, ProductType } from '../entities/Product.js';
 import { Review } from '../entities/Review.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -23,6 +23,9 @@ const getPrimaryImageUrl = (images: { url: string; isPrimary: boolean; sortOrder
   const sorted = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
   return sorted[0]?.url ?? null;
 };
+
+const toStringArray = (value: unknown): string[] => (Array.isArray(value) ? value.map(String) : []);
+const getProductTypeOrDefault = (value: ProductType | null | undefined) => value ?? ProductType.APPAREL;
 
 export const getProducts = async (
   req: Request,
@@ -56,9 +59,9 @@ export const getProducts = async (
     const minValid = typeof min === 'number' && Number.isFinite(min);
     const maxValid = typeof max === 'number' && Number.isFinite(max);
 
-    if (minValid && maxValid) where.basePrice = Between<string | number>(min, max);
-    else if (minValid) where.basePrice = MoreThanOrEqual<string | number>(min);
-    else if (maxValid) where.basePrice = LessThanOrEqual<string | number>(max);
+    if (minValid && maxValid) where.basePrice = Between(min, max);
+    else if (minValid) where.basePrice = MoreThanOrEqual(min);
+    else if (maxValid) where.basePrice = LessThanOrEqual(max);
 
     const productRepo = AppDataSource.getRepository(Product);
     const [products, total] = await productRepo.findAndCount({
@@ -103,11 +106,16 @@ export const getProducts = async (
         slug: p.slug,
         name: p.name,
         description: p.description,
+        productType: getProductTypeOrDefault(p.productType),
         basePrice: parseDecimal(p.basePrice),
-        fabric: p.fabric,
+        material: p.material,
+        fabric: p.material,
         gsm: p.gsm,
+        weightGrams: p.weightGrams == null ? null : parseDecimal(p.weightGrams),
         isCustomizable: p.isCustomizable,
+        isActive: p.isActive,
         isFeatured: p.isFeatured,
+        tags: toStringArray(p.tags),
         inStock,
         primaryImageUrl: getPrimaryImageUrl(p.images),
         reviewCount: agg.reviewCount,
@@ -166,7 +174,12 @@ export const getProductBySlug = async (
 
     const dto = {
       ...product,
+      productType: getProductTypeOrDefault(product.productType),
       basePrice: parseDecimal(product.basePrice),
+      material: product.material,
+      fabric: product.material,
+      weightGrams: product.weightGrams == null ? null : parseDecimal(product.weightGrams),
+      tags: toStringArray(product.tags),
       variants: (product.variants ?? []).map(v => ({
         ...v,
         priceAdj: parseDecimal(v.priceAdj),

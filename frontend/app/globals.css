@@ -114,6 +114,39 @@
     background-attachment: fixed;
   }
 
+  /* Sidebar active state styling using global CSS variables */
+  [data-active="true"] {
+    background-color: color-mix(in oklch, var(--accent) 100%, var(--background));
+    color: var(--sidebar-accent-foreground);
+  }
+
+  [data-active="true"] svg {
+    color: var(--sidebar-accent-foreground);
+  }
+
+  .sidebar [data-active="true"] {
+    background-color: color-mix(in oklch, var(--sidebar-accent) 15%, var(--sidebar));
+    color: var(--sidebar-accent-foreground);
+    border-l: 3px solid var(--sidebar-accent);
+    padding-left: calc(1rem - 3px);
+  }
+
+  .sidebar [data-active="true"]:hover {
+    background-color: color-mix(in oklch, var(--sidebar-accent) 25%, var(--sidebar));
+  }
+
+  .sidebar [data-active="true"] svg {
+    color: var(--sidebar-accent-foreground);
+  }
+
+  .dark .sidebar [data-active="true"] {
+    background-color: color-mix(in oklch, var(--sidebar-accent) 20%, var(--sidebar));
+  }
+
+  .dark .sidebar [data-active="true"]:hover {
+    background-color: color-mix(in oklch, var(--sidebar-accent) 30%, var(--sidebar));
+  }
+
   body::before {
     content: '';
     position: fixed;

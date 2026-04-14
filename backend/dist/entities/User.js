@@ -30,6 +30,7 @@ let User = class User {
     passwordResetTokenHash;
     passwordResetExpiry;
     isActive;
+    mustChangePassword;
     avatarUrl;
     createdAt;
     updatedAt;
@@ -96,6 +97,10 @@ __decorate([
     Column("boolean", { name: 'is_active', default: true }),
     __metadata("design:type", Boolean)
 ], User.prototype, "isActive", void 0);
+__decorate([
+    Column("boolean", { name: 'must_change_password', default: false }),
+    __metadata("design:type", Boolean)
+], User.prototype, "mustChangePassword", void 0);
 __decorate([
     Column("varchar", { name: 'avatar_url', nullable: true }),
     __metadata("design:type", Object)

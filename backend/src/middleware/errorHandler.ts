@@ -27,6 +27,17 @@ export const errorHandler = (
     return res.status(409).json(ApiResponse.error('A record with this value already exists'));
   }
 
+  const type =
+    isRecord(err) && typeof err.type === 'string'
+      ? err.type
+      : undefined;
+
+  if (type === 'entity.too.large') {
+    return res.status(413).json(
+      ApiResponse.error('Request is too large. Upload fewer or smaller images and try again.')
+    );
+  }
+
   const message = err instanceof Error ? err.message : 'Unknown error';
   const stack = err instanceof Error ? err.stack : undefined;
   logger.error(message, { stack, url: req.url });

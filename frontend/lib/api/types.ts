@@ -12,11 +12,16 @@ export type ProductListItemDto = {
   slug: string;
   name: string;
   description: string | null;
+  productType?: string;
   basePrice: number;
-  fabric: string;
-  gsm: number;
+  material?: string | null;
+  fabric: string | null;
+  gsm: number | null;
+  weightGrams?: number | null;
   isCustomizable: boolean;
+  isActive?: boolean;
   isFeatured: boolean;
+  tags?: string[];
   inStock: boolean;
   primaryImageUrl: string | null;
   reviewCount: number;
@@ -35,6 +40,7 @@ export type ProductImageDto = {
   altText: string | null;
   sortOrder: number;
   isPrimary: boolean;
+  mimeType?: string | null;
 };
 
 export type ProductVariantDto = {
@@ -53,9 +59,12 @@ export type ProductDetailDto = {
   name: string;
   slug: string;
   description: string | null;
+  productType?: string;
   basePrice: number;
-  fabric: string;
-  gsm: number;
+  material?: string | null;
+  fabric: string | null;
+  gsm: number | null;
+  weightGrams?: number | null;
   isCustomizable: boolean;
   isActive: boolean;
   isFeatured: boolean;
@@ -69,6 +78,20 @@ export type ProductDetailDto = {
   };
   images: ProductImageDto[];
   variants: ProductVariantDto[];
+  designAreas?: Array<{
+    id: string;
+    name: string;
+    areaKey?: string | null;
+    widthPx: number;
+    heightPx: number;
+    topPx: number;
+    leftPx: number;
+    allowedFileTypes?: string[] | null;
+    dpiRequirement?: number | null;
+    sortOrder?: number;
+    isRequired?: boolean;
+  }>;
+  tags?: string[];
   reviewCount: number;
   avgRating: number;
   inStock: boolean;
@@ -165,4 +188,3 @@ export type ReviewDto = {
     avatarUrl: string | null;
   };
 };
-

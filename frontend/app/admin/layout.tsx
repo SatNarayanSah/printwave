@@ -122,7 +122,7 @@ export default function AdminLayout({
           </div>
         </header>
         <main className="p-2">
-          <div className="mx-auto max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="p-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {children}
           </div>
         </main>

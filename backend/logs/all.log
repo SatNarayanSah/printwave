@@ -229,3 +229,35 @@
 2026-04-13 13:47:57:4757 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
 2026-04-14 14:02:48:248 [32minfo[39m: [32mDatabase connection established[39m
 2026-04-14 14:02:48:248 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-14 14:04:00:40 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-14 14:04:00:40 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-14 14:23:26:2326 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:28:28:2828 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:28:51:2851 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:29:09:299 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:30:27:3027 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:32:42:3242 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:33:10:3310 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:33:30:3330 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:33:39:3339 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:41:22:4122 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:41:34:4134 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:41:43:4143 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:42:57:4257 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:43:08:438 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:45:01:451 [31merror[39m: [31mInitialization failed column "productType" of relation "products" contains null values[39m
+2026-04-14 14:46:27:4627 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-14 14:46:27:4627 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-14 14:46:34:4634 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-14 14:46:34:4634 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-14 14:46:46:4646 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-14 14:46:46:4646 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-14 14:47:33:4733 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-14 14:47:33:4733 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-14 14:47:40:4740 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-14 14:47:40:4740 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-14 14:59:29:5929 [31merror[39m: [31mrequest entity too large[39m
+2026-04-14 15:17:12:1712 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-14 15:17:12:1712 [32minfo[39m: [32mServer is running at http://localhost:5000[39m
+2026-04-14 15:17:26:1726 [32minfo[39m: [32mDatabase connection established[39m
+2026-04-14 15:17:26:1726 [32minfo[39m: [32mServer is running at http://localhost:5000[39m

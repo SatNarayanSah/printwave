@@ -1,554 +1,719 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
-  Save,
-  Loader2,
-  Package,
-  Info,
-  Settings2,
   Image as ImageIcon,
-  Search,
-  CheckCircle2,
-  Upload,
-  X,
-  CloudUpload,
+  Loader2,
+  Plus,
+  Save,
   Trash2,
-  Plus
+  Upload,
 } from 'lucide-react';
-import { adminApi, categoriesApi, designsApi } from '@/lib/api';
+import { adminApi, categoriesApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogPortal,
-  DialogOverlay,
-} from '@/components/ui/dialog';
 
-interface ProductForm {
+type ProductType = 'apparel' | 'drinkware' | 'accessory' | 'home';
+
+type ProductImageForm = {
+  url: string;
+  altText: string;
+  sortOrder: number;
+  isPrimary: boolean;
+  mimeType?: string | null;
+};
+
+type ProductVariantForm = {
+  size: string;
+  color: string;
+  colorHex: string;
+  sku: string;
+  stock: string;
+  priceAdj: string;
+  imageUrl: string;
+};
+
+type DesignAreaForm = {
+  name: string;
+  areaKey: string;
+  widthPx: string;
+  heightPx: string;
+  topPx: string;
+  leftPx: string;
+  allowedFileTypes: string;
+  dpiRequirement: string;
+  isRequired: boolean;
+};
+
+type ProductForm = {
   name: string;
   slug: string;
   description: string;
   categoryId: string;
+  productType: ProductType;
   basePrice: string;
-  fabric: string;
+  material: string;
   gsm: string;
-  styleCode: string;
-  gender: string;
-  fit: string;
-  neckline: string;
-  sleeve: string;
-  weight: string;
+  weightGrams: string;
+  printTechnique: string;
+  tags: string;
+  metaTitle: string;
+  metaDescription: string;
   isCustomizable: boolean;
   isActive: boolean;
   isFeatured: boolean;
-  isDigital: boolean;
-  metaTitle: string;
-  metaDescription: string;
-  imageUrls: string;
-}
+  images: ProductImageForm[];
+  variants: ProductVariantForm[];
+  designAreas: DesignAreaForm[];
+};
+
+const createVariant = (): ProductVariantForm => ({
+  size: '',
+  color: '',
+  colorHex: '',
+  sku: '',
+  stock: '',
+  priceAdj: '',
+  imageUrl: '',
+});
+
+const createDesignArea = (): DesignAreaForm => ({
+  name: '',
+  areaKey: '',
+  widthPx: '',
+  heightPx: '',
+  topPx: '',
+  leftPx: '',
+  allowedFileTypes: '',
+  dpiRequirement: '',
+  isRequired: false,
+});
 
 const EMPTY_FORM: ProductForm = {
-  name: '', slug: '', description: '', categoryId: '', basePrice: '',
-  fabric: 'Cotton', gsm: '180', styleCode: '', gender: 'Unisex', fit: 'Regular',
-  neckline: 'Crew', sleeve: 'Short', weight: '',
-  isCustomizable: true, isActive: true, isFeatured: false, isDigital: false,
-  metaTitle: '', metaDescription: '', imageUrls: '',
+  name: '',
+  slug: '',
+  description: '',
+  categoryId: '',
+  productType: 'apparel',
+  basePrice: '',
+  material: '',
+  gsm: '',
+  weightGrams: '',
+  printTechnique: '',
+  tags: '',
+  metaTitle: '',
+  metaDescription: '',
+  isCustomizable: true,
+  isActive: true,
+  isFeatured: false,
+  images: [],
+  variants: [createVariant()],
+  designAreas: [createDesignArea()],
 };
+
+const MAX_SINGLE_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_TOTAL_IMAGE_BYTES = 24 * 1024 * 1024;
+
+const fileToDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+    reader.readAsDataURL(file);
+  });
 
 export default function NewProductPage() {
   const router = useRouter();
-  const [form, setForm] = React.useState<ProductForm>(EMPTY_FORM);
-  const [categories, setCategories] = React.useState<any[]>([]);
-  const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [loading, setLoading] = React.useState(true);
-  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
-  const [previews, setPreviews] = React.useState<string[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Quick Category Add State
-  const [showCatModal, setShowCatModal] = React.useState(false);
-  const [newCat, setNewCat] = React.useState({ name: '', slug: '', description: '' });
-  const [catSaving, setCatSaving] = React.useState(false);
-  const [catError, setCatError] = React.useState('');
+  const [form, setForm] = React.useState<ProductForm>(EMPTY_FORM);
+  const [categories, setCategories] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   React.useEffect(() => {
-    fetchCategories();
+    categoriesApi
+      .list()
+      .then((res) => setCategories(res.data || []))
+      .catch((err) => {
+        console.error(err);
+        setCategories([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const set = (k: keyof ProductForm, v: any) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleSlugify = (name: string) => {
-    set('name', name);
-    set('slug', name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+  const updateForm = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) => {
+    setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setSelectedFiles(prev => [...prev, ...files]);
+  const handleNameChange = (value: string) => {
+    updateForm('name', value);
+    updateForm(
+      'slug',
+      value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+    );
+  };
 
-      const newPreviews = files.map(file => URL.createObjectURL(file));
-      setPreviews(prev => [...prev, ...newPreviews]);
+  const updateVariant = (index: number, key: keyof ProductVariantForm, value: string) => {
+    setForm((current) => ({
+      ...current,
+      variants: current.variants.map((variant, variantIndex) =>
+        variantIndex === index ? { ...variant, [key]: value } : variant
+      ),
+    }));
+  };
+
+  const updateDesignArea = (index: number, key: keyof DesignAreaForm, value: string | boolean) => {
+    setForm((current) => ({
+      ...current,
+      designAreas: current.designAreas.map((area, areaIndex) =>
+        areaIndex === index ? { ...area, [key]: value } : area
+      ),
+    }));
+  };
+
+  const addImages = async (files: FileList | null) => {
+    if (!files?.length) return;
+
+    const nextFiles = Array.from(files);
+    const oversizedFile = nextFiles.find((file) => file.size > MAX_SINGLE_IMAGE_BYTES);
+    if (oversizedFile) {
+      throw new Error(`Image "${oversizedFile.name}" is too large. Keep each image under 8MB.`);
     }
-  };
 
-  const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    setPreviews(prev => {
-      URL.revokeObjectURL(prev[index]);
-      return prev.filter((_, i) => i !== index);
-    });
-  };
+    const currentBytes = form.images.reduce((total, image) => {
+      const base64Part = image.url.split(',')[1] || '';
+      return total + Math.floor((base64Part.length * 3) / 4);
+    }, 0);
+    const nextBytes = nextFiles.reduce((total, file) => total + file.size, 0);
 
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      const res = await categoriesApi.list();
-      const cats = res.data || [];
-      setCategories(cats);
-      return cats;
-    } catch (e) {
-      console.error(e);
-      return [];
-    } finally {
-      setLoading(false);
+    if (currentBytes + nextBytes > MAX_TOTAL_IMAGE_BYTES) {
+      throw new Error('Total image payload is too large. Keep all product images under 24MB combined.');
     }
+
+    const baseIndex = form.images.length;
+    const nextImages = await Promise.all(
+      nextFiles.map(async (file, index) => ({
+        url: await fileToDataUrl(file),
+        altText: form.name || file.name,
+        sortOrder: baseIndex + index,
+        isPrimary: form.images.length === 0 && index === 0,
+        mimeType: file.type || null,
+      }))
+    );
+
+    setForm((current) => ({
+      ...current,
+      images: [...current.images, ...nextImages],
+    }));
   };
 
-  const handleCreateCategory = async () => {
-    if (!newCat.name || !newCat.slug) return setCatError('Name and Slug are required');
-    setCatSaving(true);
-    setCatError('');
-    try {
-      const res = await adminApi.createCategory(newCat);
-      const created = res.data as any;
-      const allCats = await fetchCategories();
-      
-      // Auto-select newly created category if ID is available
-      if (created?.id) {
-        set('categoryId', String(created.id));
-      } else if (newCat.slug) {
-        const found = allCats.find((c: any) => c.slug === newCat.slug);
-        if (found) set('categoryId', String(found.id));
-      }
-      
-      setShowCatModal(false);
-      setNewCat({ name: '', slug: '', description: '' });
-    } catch (e: any) {
-      setCatError(e?.message || 'Failed to create category');
-    } finally {
-      setCatSaving(false);
-    }
+  const setPrimaryImage = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      images: current.images.map((image, imageIndex) => ({
+        ...image,
+        isPrimary: imageIndex === index,
+      })),
+    }));
+  };
+
+  const removeImage = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      images: current.images
+        .filter((_, imageIndex) => imageIndex !== index)
+        .map((image, imageIndex) => ({
+          ...image,
+          sortOrder: imageIndex,
+          isPrimary: imageIndex === 0 ? true : image.isPrimary,
+        }))
+        .map((image, imageIndex, all) => ({
+          ...image,
+          isPrimary: all.some((entry) => entry.isPrimary) ? image.isPrimary : imageIndex === 0,
+        })),
+    }));
   };
 
   const handleSubmit = async () => {
-    const missing = [];
-    if (!form.name?.trim()) missing.push('Product Name');
-    if (!form.slug?.trim()) missing.push('Product Slug');
-    if (!form.basePrice?.toString().trim()) missing.push('Base Price');
+    const missing: string[] = [];
+    const completedVariants = form.variants.filter(
+      (variant) => variant.size.trim() || variant.color.trim() || variant.sku.trim() || variant.colorHex.trim() || variant.stock.trim() || variant.priceAdj.trim() || variant.imageUrl.trim()
+    );
+    const completedDesignAreas = form.designAreas.filter(
+      (area) =>
+        area.name.trim() ||
+        area.areaKey.trim() ||
+        area.widthPx.trim() ||
+        area.heightPx.trim() ||
+        area.topPx.trim() ||
+        area.leftPx.trim() ||
+        area.allowedFileTypes.trim() ||
+        area.dpiRequirement.trim()
+    );
+
+    if (!form.name.trim()) missing.push('Product name');
+    if (!form.slug.trim()) missing.push('Slug');
     if (!form.categoryId) missing.push('Category');
+    if (!form.basePrice.trim()) missing.push('Base price');
+    if (form.images.length === 0) missing.push('At least one image');
+    if (completedVariants.length === 0) {
+      missing.push('Add at least one variant');
+    } else if (completedVariants.some((variant) => !variant.size.trim() || !variant.color.trim() || !variant.sku.trim())) {
+      missing.push('Variant fields marked required');
+    }
+    if (form.isCustomizable && completedDesignAreas.length === 0) {
+      missing.push('Add at least one design area');
+    } else if (form.isCustomizable && completedDesignAreas.some((area) => !area.name.trim() || !area.widthPx.trim() || !area.heightPx.trim())) {
+      missing.push('Design area fields marked required');
+    }
 
     if (missing.length > 0) {
-      setError(`${missing.join(', ')} ${missing.length > 1 ? 'are' : 'is'} required.`);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setError(missing.join(', '));
       return;
     }
 
-    setError('');
     setSaving(true);
+    setError('');
+
     try {
-      // 1. Upload images in parallel
-      const uploadPromises = selectedFiles.map(file =>
-        designsApi.upload({ file, name: `${form.name} Asset` })
-      );
-
-      const uploadResults = await Promise.all(uploadPromises);
-      const imageUrlsFromUpload = uploadResults.map(res => (res.data as any).fileUrl);
-
-      // 2. Combine with manual URLs if any
-      const manualUrls = form.imageUrls.split(',')
-        .map(url => url.trim())
-        .filter(Boolean);
-
-      const allUrls = [...imageUrlsFromUpload, ...manualUrls];
-
-      const images = allUrls.map((url, i) => ({
-        url,
-        altText: form.name,
-        sortOrder: i,
-        isPrimary: i === 0
-      }));
-
       await adminApi.createProduct({
-        ...form,
-        basePrice: parseFloat(form.basePrice) || 0,
-        gsm: parseInt(form.gsm) || 180,
-        weight: parseFloat(form.weight) || 0,
-        images,
+        name: form.name.trim(),
+        slug: form.slug.trim(),
+        description: form.description.trim(),
+        categoryId: form.categoryId,
+        productType: form.productType,
+        basePrice: Number(form.basePrice),
+        material: form.material.trim(),
+        gsm: form.gsm ? Number(form.gsm) : null,
+        weightGrams: form.weightGrams ? Number(form.weightGrams) : null,
+        printTechnique: form.printTechnique.trim() || null,
+        tags: form.tags
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        metaTitle: form.metaTitle.trim() || null,
+        metaDescription: form.metaDescription.trim() || null,
+        isCustomizable: form.isCustomizable,
+        isActive: form.isActive,
+        isFeatured: form.isFeatured,
+        images: form.images.map((image, index) => ({
+          ...image,
+          sortOrder: index,
+        })),
+        variants: completedVariants.map((variant) => ({
+          size: variant.size.trim(),
+          color: variant.color.trim(),
+          colorHex: variant.colorHex.trim() || '#000000',
+          sku: variant.sku.trim(),
+          stock: Number(variant.stock || 0),
+          priceAdj: Number(variant.priceAdj || 0),
+          imageUrl: variant.imageUrl.trim() || null,
+        })),
+        designAreas: form.isCustomizable
+          ? completedDesignAreas.map((area, index) => ({
+              name: area.name.trim(),
+              areaKey: area.areaKey.trim() || null,
+              widthPx: Number(area.widthPx || 0),
+              heightPx: Number(area.heightPx || 0),
+              topPx: Number(area.topPx || 0),
+              leftPx: Number(area.leftPx || 0),
+              allowedFileTypes: area.allowedFileTypes
+                .split(',')
+                .map((item) => item.trim())
+                .filter(Boolean),
+              dpiRequirement: area.dpiRequirement ? Number(area.dpiRequirement) : null,
+              sortOrder: index,
+              isRequired: area.isRequired,
+            }))
+          : [],
       });
 
       router.push('/admin/products');
-    } catch (e: any) {
-      setError(e?.message || 'Failed to establish product entity in system.');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      setError(err?.message || 'Failed to save product');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="space-y-2 ">
-      <Dialog open={showCatModal} onOpenChange={setShowCatModal}>
-        <DialogPortal>
-          <DialogOverlay className="bg-foreground/40 backdrop-blur-none z-[100]" />
-          <div className="fixed inset-0 z-[101] flex items-center justify-center p-4">
-            <div className="bg-background border border-primary/20 rounded-2xl shadow-2xl w-full max-w-md sm:w-[448px] min-w-[320px] overflow-hidden flex flex-col relative">
-              <div className="p-6 border-b border-primary/10 bg-primary/5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-black uppercase tracking-tight text-primary">Add New Category</h2>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Register new catalog node</p>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => setShowCatModal(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="p-6 space-y-4">
-                {catError && <p className="text-[10px] font-bold text-destructive bg-destructive/5 px-3 py-2 rounded-lg border border-destructive/10 uppercase tracking-tighter">{catError}</p>}
-                <div>
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1 block tracking-wider">Category Name</label>
-                  <Input
-                    placeholder="e.g. Premium Oversized"
-                    value={newCat.name}
-                    onChange={e => {
-                      const n = e.target.value;
-                      const s = n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                      setNewCat(prev => ({ ...prev, name: n, slug: s }));
-                    }}
-                    className="font-bold border-primary/10 focus:border-primary/40 focus:ring-primary/20 bg-primary/5"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1 block tracking-wider">Description</label>
-                  <textarea
-                    placeholder="Optional categorization details..."
-                    value={newCat.description}
-                    onChange={e => setNewCat(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full min-h-[80px] rounded-xl border border-primary/10 bg-muted/5 px-3 py-2 text-xs font-medium resize-none focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary/40"
-                  />
-                </div>
-              </div>
-              <div className="p-4 bg-primary/5 border-t border-primary/10 flex justify-end gap-2">
-                <Button variant="ghost" className="text-[10px] font-black uppercase px-4 h-9 hover:bg-primary/10 transition-colors" onClick={() => setShowCatModal(false)}>Cancel</Button>
-                <Button onClick={handleCreateCategory} disabled={catSaving} className="text-[10px] font-black uppercase px-6 h-9 bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_8px_16px_-6px_rgba(var(--primary),0.3)]">
-                  {catSaving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Save className="h-3 w-3 mr-2" />}
-                  {catSaving ? 'Creating...' : 'Register'}
-                </Button>
-              </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="icon" asChild>
+              <Link href="/admin/products">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-3xl font-black tracking-tight">Create Product</h1>
+              <p className="text-sm text-muted-foreground">
+                Save product details, images, variants, and design areas in one flow.
+              </p>
             </div>
           </div>
-        </DialogPortal>
-      </Dialog>
-
-      {/* Header Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-background/95  z-10 py-4 -mx-4 px-4 border-b border-border/20">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full h-10 w-10 border-border/60"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-black uppercase tracking-tight">Create Base Product</h1>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">New Inventory Node Initialization</p>
-          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            className="rounded-full font-black text-[10px] uppercase tracking-widest px-6 h-10"
-            onClick={() => router.back()}
-          >
-            Discard
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={saving}
-            className="rounded-full font-black text-[10px] uppercase tracking-widest px-8 h-10 gap-2 bg-foreground text-background hover:bg-foreground/90 transition-all shadow-lg"
-          >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {saving ? 'Syncing...' : 'Establish Product'}
-          </Button>
-        </div>
+        <Button onClick={handleSubmit} disabled={saving || loading} className="gap-2">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Save Product
+        </Button>
       </div>
 
-      {error && (
-        <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-          <Info className="h-5 w-5 text-destructive" />
-          <p className="text-xs font-black uppercase tracking-wider text-destructive">{error}</p>
+      {error ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
         </div>
-      )}
+      ) : null}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Core Data */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* General Identification */}
-          <Card className="border-border/40 shadow-sm overflow-hidden">
-            <div className="bg-muted/30 px-6 py-3 border-b border-border/20">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 flex items-center gap-2">
-                <Package className="h-3 w-3" /> Core Identity
-              </h3>
-            </div>
-            <CardContent className="p-6 space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="col-span-2">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Commercial Product Name *</label>
-                  <Input
-                    placeholder="e.g. Classic Mithila Unisex Heavyweight T-Shirt"
-                    value={form.name}
-                    onChange={e => handleSlugify(e.target.value)}
-                    className="h-11 font-bold text-base bg-muted/5 border-border/60 focus:ring-primary"
-                  />
-                </div>
-                <div className="col-span-2 md:col-span-1">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Uniform Resource Slug (Automated) *</label>
-                  <Input
-                    placeholder="classic-heavyweight-t-shirt"
-                    value={form.slug}
-                    onChange={e => set('slug', e.target.value)}
-                    className="h-10 font-mono text-xs font-bold bg-muted/20"
-                  />
-                </div>
-                <div className="col-span-2 md:col-span-1">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Catalog Placement *</label>
-                  <div className="flex gap-2">
-                    <select
-                      value={form.categoryId}
-                      onChange={e => set('categoryId', e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-border/60 bg-muted/5 px-3 py-1 text-sm font-bold shadow-sm transition-colors focus:ring-1 focus:ring-primary outline-none"
-                    >
-                      <option value="">Select Target Category</option>
-                      {categories.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-10 w-10 shrink-0 border-border/60 hover:bg-primary/5 hover:text-primary transition-all rounded-md"
-                      onClick={() => setShowCatModal(true)}
-                      title="Add New Category"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Commercial Narrative (Description)</label>
-                  <textarea
-                    placeholder="Craft a compelling story for this product..."
-                    value={form.description}
-                    onChange={e => set('description', e.target.value)}
-                    className="w-full min-h-[150px] rounded-xl border border-border/60 bg-muted/5 px-4 py-3 text-sm font-medium resize-none focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Technical Specs */}
-          <Card className="border-border/40 shadow-sm overflow-hidden">
-            <div className="bg-muted/30 px-6 py-3 border-b border-border/20">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 flex items-center gap-2">
-                <Settings2 className="h-3 w-3" /> Technical Specifications
-              </h3>
-            </div>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Fabric Composition</label>
-                  <Input placeholder="100% Cotton" value={form.fabric} onChange={e => set('fabric', e.target.value)} className="font-semibold" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Density (GSM)</label>
-                  <Input type="number" placeholder="180" value={form.gsm} onChange={e => set('gsm', e.target.value)} className="font-semibold" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Model Reference (StyleCode)</label>
-                  <Input placeholder="BC-3001" value={form.styleCode} onChange={e => set('styleCode', e.target.value)} className="font-semibold" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Gender Orientation</label>
-                  <select value={form.gender} onChange={e => set('gender', e.target.value)} className="flex h-10 w-full rounded-md border border-border/60 bg-muted/5 px-3 py-1 text-sm font-semibold outline-none focus:ring-1 focus:ring-primary">
-                    <option value="Unisex">Unisex</option>
-                    <option value="Men">Men</option>
-                    <option value="Women">Women</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Fit Architecture</label>
-                  <select value={form.fit} onChange={e => set('fit', e.target.value)} className="flex h-10 w-full rounded-md border border-border/60 bg-muted/5 px-3 py-1 text-sm font-semibold outline-none focus:ring-1 focus:ring-primary">
-                    <option value="Regular">Regular</option>
-                    <option value="Slim">Slim</option>
-                    <option value="Oversized">Oversized</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Neckline Style</label>
-                  <Input placeholder="Crew Neck" value={form.neckline} onChange={e => set('neckline', e.target.value)} className="font-semibold" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Visibility Optimization */}
-          <Card className="border-border/40 shadow-sm overflow-hidden">
-            <div className="bg-muted/30 px-6 py-3 border-b border-border/20">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 flex items-center gap-2">
-                <Search className="h-3 w-3" /> SEO Visibility Architecture
-              </h3>
-            </div>
-            <CardContent className="p-6 space-y-6">
-              <div>
-                <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Metadata Title (SEO)</label>
-                <Input placeholder="SEO Optimized Title" value={form.metaTitle} onChange={e => set('metaTitle', e.target.value)} className="font-medium" />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Core Details</CardTitle>
+              <CardDescription>Basic catalog data used across storefront, cart, and admin. Fields marked with * are required.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-medium">Product name *</label>
+                <Input value={form.name} onChange={(e) => handleNameChange(e.target.value)} placeholder="Premium oversized t-shirt" />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Metadata Description (SEO)</label>
+                <label className="mb-1 block text-sm font-medium">Slug *</label>
+                <Input value={form.slug} onChange={(e) => updateForm('slug', e.target.value)} placeholder="premium-oversized-tshirt" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Category *</label>
+                <select
+                  value={form.categoryId}
+                  onChange={(e) => updateForm('categoryId', e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Select category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Product type *</label>
+                <select
+                  value={form.productType}
+                  onChange={(e) => updateForm('productType', e.target.value as ProductType)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="apparel">Apparel</option>
+                  <option value="drinkware">Drinkware</option>
+                  <option value="accessory">Accessory</option>
+                  <option value="home">Home</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Base price *</label>
+                <Input type="number" value={form.basePrice} onChange={(e) => updateForm('basePrice', e.target.value)} placeholder="799" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Material (Optional)</label>
+                <Input value={form.material} onChange={(e) => updateForm('material', e.target.value)} placeholder="Cotton, Ceramic, Polyester" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">GSM (Optional)</label>
+                <Input type="number" value={form.gsm} onChange={(e) => updateForm('gsm', e.target.value)} placeholder="180" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Weight (grams) (Optional)</label>
+                <Input type="number" value={form.weightGrams} onChange={(e) => updateForm('weightGrams', e.target.value)} placeholder="250" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Print technique (Optional)</label>
+                <Input value={form.printTechnique} onChange={(e) => updateForm('printTechnique', e.target.value)} placeholder="DTG, DTF, Sublimation" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Tags (Optional)</label>
+                <Input value={form.tags} onChange={(e) => updateForm('tags', e.target.value)} placeholder="premium, oversized, summer" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-medium">Description (Optional)</label>
                 <textarea
-                  placeholder="Summarize product for search crawlers..."
-                  value={form.metaDescription}
-                  onChange={e => set('metaDescription', e.target.value)}
-                  className="w-full min-h-[80px] rounded-xl border border-border/60 bg-muted/5 px-4 py-3 text-sm font-medium resize-none focus:outline-none focus:ring-1 focus:ring-primary transition-all"
+                  value={form.description}
+                  onChange={(e) => updateForm('description', e.target.value)}
+                  className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="Describe the product, materials, print compatibility, and selling points"
                 />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Logistics & Assets */}
-        <div className="space-y-8">
-          {/* Commercials */}
-          <Card className="border-border/40 shadow-sm overflow-hidden">
-            <div className="bg-muted/30 px-6 py-3 border-b border-border/20">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 flex items-center gap-2">
-                Commercial Parameters
-              </h3>
-            </div>
-            <CardContent className="p-6 space-y-6">
               <div>
-                <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Base Cost Node (रू) *</label>
-                <Input type="number" placeholder="799.00" value={form.basePrice} onChange={e => set('basePrice', e.target.value)} className="h-12 font-black text-xl text-primary bg-primary/5 border-primary/20" />
+                <label className="mb-1 block text-sm font-medium">Meta title (Optional)</label>
+                <Input value={form.metaTitle} onChange={(e) => updateForm('metaTitle', e.target.value)} placeholder="SEO title" />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-muted-foreground mb-1.5 block tracking-wider">Logistic Weight (Grams)</label>
-                <Input type="number" placeholder="250" value={form.weight} onChange={e => set('weight', e.target.value)} className="font-bold" />
+                <label className="mb-1 block text-sm font-medium">Meta description (Optional)</label>
+                <Input value={form.metaDescription} onChange={(e) => updateForm('metaDescription', e.target.value)} placeholder="SEO description" />
               </div>
             </CardContent>
           </Card>
 
-          {/* Asset Pipeline */}
-          <Card className="border-border/40 shadow-sm overflow-hidden">
-            <div className="bg-muted/30 px-6 py-3 border-b border-border/20">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 flex items-center gap-2">
-                <ImageIcon className="h-3 w-3" /> Image Asset Pipeline
-              </h3>
-            </div>
-            <CardContent className="p-6 space-y-4">
-              {/* File Upload Area */}
-              <div
-                className="group relative p-8 border-2 border-dashed border-border/40 rounded-2xl bg-muted/5 hover:bg-muted/10 hover:border-primary/40 transition-all cursor-pointer text-center"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                <div className="flex flex-col items-center gap-2">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <CloudUpload className="h-5 w-5" />
-                  </div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Upload Inventory Assets</p>
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold">Select PNG, JPG, or WEBP files</p>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Images</CardTitle>
+                <CardDescription>At least one image is required. Uploaded images are converted to data URLs and stored in the database.</CardDescription>
+              </div>
+              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2">
+                <Upload className="h-4 w-4" />
+                Upload Images
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={async (e) => {
+                  try {
+                    await addImages(e.target.files);
+                    e.target.value = '';
+                  } catch (err: any) {
+                    setError(err?.message || 'Failed to read image');
+                  }
+                }}
+              />
+
+              {form.images.length === 0 ? (
+                <div className="flex min-h-40 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+                  No images added yet.
                 </div>
-              </div>
-
-              {/* Previews */}
-              {previews.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 py-2">
-                  {previews.map((preview, i) => (
-                    <div key={i} className="group relative aspect-square rounded-lg bg-muted border border-border/20 overflow-hidden shadow-sm">
-                      <img src={preview} alt="" className="h-full w-full object-cover" />
-                      <button
-                        onClick={() => removeFile(i)}
-                        className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {form.images.map((image, index) => (
+                    <div key={`${image.sortOrder}-${index}`} className="overflow-hidden rounded-lg border bg-card">
+                      <div className="aspect-square overflow-hidden bg-muted">
+                        <img src={image.url} alt={image.altText || form.name} className="h-full w-full object-cover" />
+                      </div>
+                      <div className="space-y-3 p-3">
+                        <Input
+                          value={image.altText}
+                          onChange={(e) =>
+                            setForm((current) => ({
+                              ...current,
+                              images: current.images.map((entry, imageIndex) =>
+                                imageIndex === index ? { ...entry, altText: e.target.value } : entry
+                              ),
+                            }))
+                          }
+                          placeholder="Alt text"
+                        />
+                        <div className="flex gap-2">
+                          <Button type="button" variant={image.isPrimary ? 'default' : 'outline'} onClick={() => setPrimaryImage(index)} className="flex-1">
+                            {image.isPrimary ? 'Primary' : 'Set Primary'}
+                          </Button>
+                          <Button type="button" variant="outline" size="icon" onClick={() => removeImage(index)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
-
-              <div className="pt-4 border-t border-border/20">
-                <label className="text-[10px] font-black uppercase text-muted-foreground mb-2 block tracking-wider">Historical/Remote URLs</label>
-                <textarea
-                  placeholder="Paste backup URLs (comma separated)..."
-                  value={form.imageUrls}
-                  onChange={e => set('imageUrls', e.target.value)}
-                  className="w-full min-h-[60px] rounded-xl border border-border/60 bg-muted/5 px-3 py-2 text-[10px] font-mono leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-                />
-              </div>
             </CardContent>
           </Card>
 
-          {/* Node Status Switches */}
-          <Card className="border-border/40 shadow-sm overflow-hidden">
-            <div className="bg-muted/30 px-6 py-3 border-b border-border/20">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 flex items-center gap-2">
-                Entity Parameters
-              </h3>
-            </div>
-            <CardContent className="p-6 space-y-4">
-              <label className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/20 transition-colors cursor-pointer border border-transparent hover:border-border/20">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase tracking-wider">Customizable Node</p>
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold">Allow designer overlay</p>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Variants</CardTitle>
+                <CardDescription>At least one variant is required. Required fields: size, color, SKU. Other variant fields are optional.</CardDescription>
+              </div>
+              <Button type="button" variant="outline" onClick={() => updateForm('variants', [...form.variants, createVariant()])} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Variant
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {form.variants.map((variant, index) => (
+                <div key={index} className="rounded-lg border p-4">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="font-semibold">Variant {index + 1}</h3>
+                    {form.variants.length > 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => updateForm('variants', form.variants.filter((_, variantIndex) => variantIndex !== index))}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">Size / label *</label>
+                      <Input value={variant.size} onChange={(e) => updateVariant(index, 'size', e.target.value)} placeholder="M or 11oz" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">Color *</label>
+                      <Input value={variant.color} onChange={(e) => updateVariant(index, 'color', e.target.value)} placeholder="Black" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">Color hex (Optional)</label>
+                      <Input value={variant.colorHex} onChange={(e) => updateVariant(index, 'colorHex', e.target.value)} placeholder="#111111" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">SKU *</label>
+                      <Input value={variant.sku} onChange={(e) => updateVariant(index, 'sku', e.target.value)} placeholder="TSHIRT-BLK-M" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">Stock (Optional)</label>
+                      <Input type="number" value={variant.stock} onChange={(e) => updateVariant(index, 'stock', e.target.value)} placeholder="0" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">Price adjustment (Optional)</label>
+                      <Input type="number" value={variant.priceAdj} onChange={(e) => updateVariant(index, 'priceAdj', e.target.value)} placeholder="0" />
+                    </div>
+                    <div className="md:col-span-2 xl:col-span-3">
+                      <label className="mb-1 block text-sm font-medium">Variant image URL (Optional)</label>
+                      <Input value={variant.imageUrl} onChange={(e) => updateVariant(index, 'imageUrl', e.target.value)} placeholder="Optional override image or data URL" />
+                    </div>
+                  </div>
                 </div>
-                <input type="checkbox" checked={form.isCustomizable} onChange={e => set('isCustomizable', e.target.checked)} className="h-4 w-4 rounded-full accent-primary" />
-              </label>
-              <label className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/20 transition-colors cursor-pointer border border-transparent hover:border-border/20">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase tracking-wider">Production Active</p>
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold">Sync to public catalog</p>
+              ))}
+            </CardContent>
+          </Card>
+
+          {form.isCustomizable ? (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle>Design Areas</CardTitle>
+                  <CardDescription>When customizable is enabled, add at least one design area. Required fields: name, width, height.</CardDescription>
                 </div>
-                <input type="checkbox" checked={form.isActive} onChange={e => set('isActive', e.target.checked)} className="h-4 w-4 rounded-full accent-primary" />
+                <Button type="button" variant="outline" onClick={() => updateForm('designAreas', [...form.designAreas, createDesignArea()])} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Area
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {form.designAreas.map((area, index) => (
+                  <div key={index} className="rounded-lg border p-4">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="font-semibold">Area {index + 1}</h3>
+                      {form.designAreas.length > 1 ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => updateForm('designAreas', form.designAreas.filter((_, areaIndex) => areaIndex !== index))}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Name *</label>
+                        <Input value={area.name} onChange={(e) => updateDesignArea(index, 'name', e.target.value)} placeholder="Front" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Key (Optional)</label>
+                        <Input value={area.areaKey} onChange={(e) => updateDesignArea(index, 'areaKey', e.target.value)} placeholder="front" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Allowed file types (Optional)</label>
+                        <Input value={area.allowedFileTypes} onChange={(e) => updateDesignArea(index, 'allowedFileTypes', e.target.value)} placeholder="png,jpg,jpeg,svg" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Width (px) *</label>
+                        <Input type="number" value={area.widthPx} onChange={(e) => updateDesignArea(index, 'widthPx', e.target.value)} placeholder="2400" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Height (px) *</label>
+                        <Input type="number" value={area.heightPx} onChange={(e) => updateDesignArea(index, 'heightPx', e.target.value)} placeholder="3200" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">DPI requirement (Optional)</label>
+                        <Input type="number" value={area.dpiRequirement} onChange={(e) => updateDesignArea(index, 'dpiRequirement', e.target.value)} placeholder="300" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Top offset (Optional)</label>
+                        <Input type="number" value={area.topPx} onChange={(e) => updateDesignArea(index, 'topPx', e.target.value)} placeholder="200" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Left offset (Optional)</label>
+                        <Input type="number" value={area.leftPx} onChange={(e) => updateDesignArea(index, 'leftPx', e.target.value)} placeholder="150" />
+                      </div>
+                      <label className="flex items-center gap-2 pt-7 text-sm font-medium">
+                        <input
+                          type="checkbox"
+                          checked={area.isRequired}
+                          onChange={(e) => updateDesignArea(index, 'isRequired', e.target.checked)}
+                        />
+                        Required design area
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Status</CardTitle>
+              <CardDescription>Catalog and customization visibility.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <label className="flex items-center justify-between text-sm">
+                <span>Active product</span>
+                <input type="checkbox" checked={form.isActive} onChange={(e) => updateForm('isActive', e.target.checked)} />
               </label>
-              <label className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/20 transition-colors cursor-pointer border border-transparent hover:border-border/20">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase tracking-wider">Global Featured</p>
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold">Promote on dashboard</p>
-                </div>
-                <input type="checkbox" checked={form.isFeatured} onChange={e => set('isFeatured', e.target.checked)} className="h-4 w-4 rounded-full accent-primary" />
+              <label className="flex items-center justify-between text-sm">
+                <span>Customizable</span>
+                <input type="checkbox" checked={form.isCustomizable} onChange={(e) => updateForm('isCustomizable', e.target.checked)} />
               </label>
-              <label className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/20 transition-colors cursor-pointer border border-transparent hover:border-border/20">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase tracking-wider">Pure Digital Spec</p>
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold">Asset-only, no logistics</p>
-                </div>
-                <input type="checkbox" checked={form.isDigital} onChange={e => set('isDigital', e.target.checked)} className="h-4 w-4 rounded-full accent-primary" />
+              <label className="flex items-center justify-between text-sm">
+                <span>Featured</span>
+                <input type="checkbox" checked={form.isFeatured} onChange={(e) => updateForm('isFeatured', e.target.checked)} />
               </label>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Preview</CardTitle>
+              <CardDescription>Quick summary of what will be saved.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="overflow-hidden rounded-lg border bg-muted">
+                {form.images[0]?.url ? (
+                  <img src={form.images.find((image) => image.isPrimary)?.url || form.images[0].url} alt={form.name || 'Preview'} className="aspect-square w-full object-cover" />
+                ) : (
+                  <div className="flex aspect-square items-center justify-center text-muted-foreground">
+                    <ImageIcon className="h-8 w-8" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold">{form.name || 'Untitled product'}</p>
+                <p className="text-sm text-muted-foreground">{form.productType}</p>
+                <p className="text-sm text-muted-foreground">
+                  {form.variants.length} variants, {form.images.length} images, {form.isCustomizable ? form.designAreas.length : 0} design areas
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>

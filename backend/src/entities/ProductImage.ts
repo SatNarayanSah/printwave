@@ -14,11 +14,14 @@ export class ProductImage {
   @JoinColumn({ name: "product_id" })
   product!: Product;
 
-  @Column("varchar")
+  @Column("text")
   url!: string;
 
   @Column("varchar", { name: "alt_text", nullable: true })
-  altText!: string;
+  altText!: string | null;
+
+  @Column("varchar", { name: "mime_type", nullable: true })
+  mimeType!: string | null;
 
   @Column("int", { name: "sort_order", default: 0 })
   sortOrder!: number;

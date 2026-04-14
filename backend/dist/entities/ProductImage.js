@@ -16,6 +16,7 @@ let ProductImage = class ProductImage {
     product;
     url;
     altText;
+    mimeType;
     sortOrder;
     isPrimary;
 };
@@ -33,13 +34,17 @@ __decorate([
     __metadata("design:type", Product)
 ], ProductImage.prototype, "product", void 0);
 __decorate([
-    Column("varchar"),
+    Column("text"),
     __metadata("design:type", String)
 ], ProductImage.prototype, "url", void 0);
 __decorate([
     Column("varchar", { name: "alt_text", nullable: true }),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], ProductImage.prototype, "altText", void 0);
+__decorate([
+    Column("varchar", { name: "mime_type", nullable: true }),
+    __metadata("design:type", Object)
+], ProductImage.prototype, "mimeType", void 0);
 __decorate([
     Column("int", { name: "sort_order", default: 0 }),
     __metadata("design:type", Number)

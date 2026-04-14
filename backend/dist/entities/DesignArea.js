@@ -15,10 +15,15 @@ let DesignArea = class DesignArea {
     productId;
     product;
     name; // "Front", "Back", "Left Sleeve"
+    areaKey;
     widthPx;
     heightPx;
     topPx; // offset from product image top
     leftPx; // offset from product image left
+    allowedFileTypes;
+    dpiRequirement;
+    sortOrder;
+    isRequired;
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
@@ -38,6 +43,10 @@ __decorate([
     __metadata("design:type", String)
 ], DesignArea.prototype, "name", void 0);
 __decorate([
+    Column("varchar", { name: "area_key", nullable: true }),
+    __metadata("design:type", Object)
+], DesignArea.prototype, "areaKey", void 0);
+__decorate([
     Column("int", { name: "width_px" }),
     __metadata("design:type", Number)
 ], DesignArea.prototype, "widthPx", void 0);
@@ -53,6 +62,22 @@ __decorate([
     Column("int", { name: "left_px" }),
     __metadata("design:type", Number)
 ], DesignArea.prototype, "leftPx", void 0);
+__decorate([
+    Column("simple-array", { name: "allowed_file_types", nullable: true }),
+    __metadata("design:type", Object)
+], DesignArea.prototype, "allowedFileTypes", void 0);
+__decorate([
+    Column("int", { name: "dpi_requirement", nullable: true }),
+    __metadata("design:type", Object)
+], DesignArea.prototype, "dpiRequirement", void 0);
+__decorate([
+    Column("int", { name: "sort_order", default: 0 }),
+    __metadata("design:type", Number)
+], DesignArea.prototype, "sortOrder", void 0);
+__decorate([
+    Column("boolean", { name: "is_required", default: false }),
+    __metadata("design:type", Boolean)
+], DesignArea.prototype, "isRequired", void 0);
 DesignArea = __decorate([
     Entity('design_areas')
 ], DesignArea);

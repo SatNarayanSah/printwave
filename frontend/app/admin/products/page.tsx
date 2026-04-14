@@ -16,7 +16,7 @@ import {
   PackageX
 } from 'lucide-react';
 import Link from 'next/link';
-import { adminApi, categoriesApi } from '@/lib/api';
+import { adminApi } from '@/lib/api';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,6 @@ import {
 export default function ProductManagementPage() {
   const [productsList, setProductsList] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [categories, setCategories] = React.useState<any[]>([]);
   const [search, setSearch] = React.useState('');
   const [categoryFilter, setCategoryFilter] = React.useState('All');
 
@@ -52,14 +51,10 @@ export default function ProductManagementPage() {
 
   const fetchProducts = () => {
     setLoading(true);
-    // Fetch products and categories in parallel
-    Promise.all([
-      adminApi.products(),
-      categoriesApi.list()
-    ])
-      .then(([productsRes, catsRes]: [any, any]) => {
+    adminApi
+      .products()
+      .then((productsRes: any) => {
         setProductsList(productsRes.data || []);
-        if (catsRes?.data) setCategories(catsRes.data);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -223,8 +218,8 @@ export default function ProductManagementPage() {
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3 py-1">
                         <div className="h-12 w-12 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-muted-foreground overflow-hidden flex-shrink-0">
-                          {prod.imageUrl ? (
-                            <img src={prod.imageUrl} alt={prod.name} className="h-full w-full object-cover" />
+                          {prod.primaryImageUrl ? (
+                            <img src={prod.primaryImageUrl} alt={prod.name} className="h-full w-full object-cover" />
                           ) : (
                             <Package className="h-6 w-6" />
                           )}
@@ -232,7 +227,7 @@ export default function ProductManagementPage() {
                         <div className="flex flex-col max-w-[200px]">
                           <span className="font-bold text-sm tracking-tight truncate" title={prod.name}>{prod.name}</span>
                           <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-                            {prod.fabric || 'Cotton'} · {prod.gsm || '—'}gsm · {prod.isCustomizable ? 'Customizable' : 'Standard'}
+                            {prod.material || prod.fabric || 'Material n/a'} · {prod.gsm || '—'}gsm · {prod.isCustomizable ? 'Customizable' : 'Standard'}
                           </span>
                         </div>
                       </div>

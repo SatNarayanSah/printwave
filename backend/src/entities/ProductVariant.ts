@@ -7,7 +7,6 @@ import {
   JoinColumn 
 } from "typeorm";
 import { Product } from "./Product.js";
-import { ShirtSize } from "../types/enums.js";
 
 @Entity('product_variants')
 export class ProductVariant {
@@ -21,8 +20,8 @@ export class ProductVariant {
   @JoinColumn({ name: "product_id" })
   product!: Product;
 
-  @Column({ type: "enum", enum: ShirtSize })
-  size!: ShirtSize;
+  @Column("varchar")
+  size!: string;
 
   @Column("varchar")
   color!: string;
@@ -39,6 +38,6 @@ export class ProductVariant {
   @Column("decimal", { name: "price_adj", precision: 10, scale: 2, default: 0 })
   priceAdj!: number | string;
 
-  @Column("varchar", { name: "image_url", nullable: true })
-  imageUrl!: string;
+  @Column("text", { name: "image_url", nullable: true })
+  imageUrl!: string | null;
 }

@@ -11,7 +11,7 @@ import { productsApi, reviewsApi } from '@/lib/api';
 import type { ProductDetailDto, ReviewDto } from '@/lib/api/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn, getMediaUrl } from '@/lib/utils';
+import { formatNPR, getMediaUrl } from '@/lib/utils';
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -115,11 +115,15 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     return (product?.variants ?? []).find((v) => v.color === selectedColor && v.size === selectedSize) ?? null;
   }, [product?.variants, selectedColor, selectedSize]);
 
+  const basePrice = product?.basePrice ?? 0;
+  const variantAdjustment = selectedVariant?.priceAdj ?? 0;
   const unitPrice = useMemo(() => {
-    const base = product?.basePrice ?? 0;
-    const adj = selectedVariant?.priceAdj ?? 0;
-    return base + adj;
-  }, [product?.basePrice, selectedVariant?.priceAdj]);
+    return basePrice + variantAdjustment;
+  }, [basePrice, variantAdjustment]);
+
+  const displayImage = selectedVariant?.imageUrl
+    ? getMediaUrl(selectedVariant.imageUrl)
+    : primaryImage || '/placeholder.svg';
 
   const handleAddToCart = () => {
     if (!product || !selectedVariant) return;
@@ -170,7 +174,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
               <CardContent className="p-0">
                 <div className="relative bg-muted aspect-square">
                   <Image
-                    src={getMediaUrl(selectedVariant?.imageUrl) || primaryImage}
+                    src={displayImage}
                     alt={product.name}
                     fill
                     className="object-cover"
@@ -205,8 +209,14 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 <p className="text-muted-foreground">{product.description ?? ''}</p>
 
                 <div className="flex items-baseline space-x-2">
-                  <span className="text-4xl font-bold text-foreground">${unitPrice.toFixed(2)}</span>
+                  <span className="text-4xl font-bold text-foreground">{formatNPR(basePrice)}</span>
                 </div>
+
+                {variantAdjustment !== 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Variant adjustment: {variantAdjustment > 0 ? '+' : '-'} {formatNPR(Math.abs(variantAdjustment))}
+                  </p>
+                ) : null}
 
                 <div className="space-y-4">
                   <div>

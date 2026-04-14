@@ -11,13 +11,15 @@ import { ApiResponse } from './utils/ApiResponse.js';
 import routes from './routes/index.js';
 export const createServer = () => {
     const app = express();
+    const bodyLimit = process.env.REQUEST_BODY_LIMIT || '50mb';
     // Middleware
     app.use(helmet());
     app.use(cors({
         origin: process.env.FRONTEND_URL || 'http://localhost:3000',
         credentials: true, // Required for cookies
     }));
-    app.use(express.json());
+    app.use(express.json({ limit: bodyLimit }));
+    app.use(express.urlencoded({ extended: true, limit: bodyLimit }));
     app.use(cookieParser()); // Parse cookies before routes
     app.use(morgan('dev'));
     // Welcome Route

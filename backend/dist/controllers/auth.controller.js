@@ -31,7 +31,7 @@ const generateTokens = (user) => {
 };
 const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const getFrontendBaseUrl = () => (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
-const sendVerificationEmail = async (user, token) => {
+export const sendVerificationEmail = async (user, token) => {
     const baseUrl = getFrontendBaseUrl();
     const link = `${baseUrl}/auth/verify-email?token=${token}`;
     const logoUrl = `${baseUrl}/logo.png`;
@@ -216,7 +216,10 @@ export const login = async (req, res, next) => {
         // Set httpOnly cookie (no localStorage)
         res.cookie('pw_token', accessToken, COOKIE_OPTIONS);
         const { passwordHash, emailVerificationToken, emailVerificationExpiry, passwordResetTokenHash, passwordResetExpiry, ...safeUser } = user;
-        return res.json(ApiResponse.ok({ user: safeUser }, 'Login successful'));
+        return res.json(ApiResponse.ok({
+            user: safeUser,
+            mustChangePassword: user.mustChangePassword
+        }, 'Login successful'));
     }
     catch (err) {
         next(err);
@@ -234,7 +237,7 @@ export const getMe = async (req, res, next) => {
         const userRepo = AppDataSource.getRepository(User);
         const user = await userRepo.findOne({
             where: { id: req.user.sub },
-            select: ['id', 'email', 'firstName', 'lastName', 'role', 'avatarUrl', 'isVerified', 'createdAt']
+            select: ['id', 'email', 'firstName', 'lastName', 'role', 'avatarUrl', 'isVerified', 'mustChangePassword', 'createdAt']
         });
         if (!user)
             throw ApiError.notFound('User not found');
@@ -286,6 +289,27 @@ export const resetPassword = async (req, res, next) => {
         await userRepo.save(user);
         res.clearCookie('pw_token', { path: '/' });
         return res.json(ApiResponse.ok(null, 'Password reset successful. Please log in.'));
+    }
+    catch (err) {
+        next(err);
+    }
+};
+export const completeOnboarding = async (req, res, next) => {
+    try {
+        if (!req.user)
+            throw ApiError.unauthorized('Authentication required');
+        const { password } = req.body;
+        const userRepo = AppDataSource.getRepository(User);
+        const user = await userRepo.findOneBy({ id: req.user.id });
+        if (!user)
+            throw ApiError.notFound('User not found');
+        if (!user.mustChangePassword) {
+            throw ApiError.badRequest('Onboarding already complete or not required');
+        }
+        user.passwordHash = await bcrypt.hash(password, 12);
+        user.mustChangePassword = false;
+        await userRepo.save(user);
+        return res.json(ApiResponse.ok(null, 'Onboarding complete! Your password has been updated.'));
     }
     catch (err) {
         next(err);

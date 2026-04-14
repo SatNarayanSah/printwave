@@ -14,21 +14,36 @@ import { ProductVariant } from "./ProductVariant.js";
 import { ProductImage } from "./ProductImage.js";
 import { Review } from "./Review.js";
 import { DesignArea } from "./DesignArea.js";
+export var ProductType;
+(function (ProductType) {
+    ProductType["APPAREL"] = "apparel";
+    ProductType["DRINKWARE"] = "drinkware";
+    ProductType["ACCESSORY"] = "accessory";
+    ProductType["HOME"] = "home";
+})(ProductType || (ProductType = {}));
 let Product = class Product {
     id;
     name;
     slug;
     description;
+    productType; // ← NEW: Critical for your platform
     categoryId;
     category;
     basePrice;
-    fabric;
-    gsm;
+    material; // ← Changed from fabric (Cotton, Ceramic, Polyester, etc.)
+    gsm; // ← Only for apparel (nullable)
+    weightGrams; // ← NEW: Required for shipping
     isCustomizable;
     isActive;
     isFeatured;
+    printTechnique; // DTG, DTF, Sublimation, Embroidery, etc.
     createdAt;
     updatedAt;
+    // SEO
+    metaTitle;
+    metaDescription;
+    tags; // e.g. ["premium", "oversized", "summer-collection"]
+    // Relations
     variants;
     images;
     reviews;
@@ -48,8 +63,12 @@ __decorate([
 ], Product.prototype, "slug", void 0);
 __decorate([
     Column("text", { nullable: true }),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], Product.prototype, "description", void 0);
+__decorate([
+    Column({ type: "enum", enum: ProductType, nullable: true, default: ProductType.APPAREL }),
+    __metadata("design:type", Object)
+], Product.prototype, "productType", void 0);
 __decorate([
     Column("uuid", { name: "category_id" }),
     __metadata("design:type", String)
@@ -61,16 +80,20 @@ __decorate([
 ], Product.prototype, "category", void 0);
 __decorate([
     Column("decimal", { name: "base_price", precision: 10, scale: 2 }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Number)
 ], Product.prototype, "basePrice", void 0);
 __decorate([
-    Column("varchar"),
-    __metadata("design:type", String)
-], Product.prototype, "fabric", void 0);
+    Column("varchar", { nullable: true }),
+    __metadata("design:type", Object)
+], Product.prototype, "material", void 0);
 __decorate([
-    Column("int"),
-    __metadata("design:type", Number)
+    Column("int", { nullable: true }),
+    __metadata("design:type", Object)
 ], Product.prototype, "gsm", void 0);
+__decorate([
+    Column("decimal", { name: "weight_grams", precision: 8, scale: 2, nullable: true }),
+    __metadata("design:type", Object)
+], Product.prototype, "weightGrams", void 0);
 __decorate([
     Column("boolean", { name: "is_customizable", default: true }),
     __metadata("design:type", Boolean)
@@ -84,6 +107,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Product.prototype, "isFeatured", void 0);
 __decorate([
+    Column("varchar", { name: "print_technique", nullable: true }),
+    __metadata("design:type", Object)
+], Product.prototype, "printTechnique", void 0);
+__decorate([
     CreateDateColumn({ type: "timestamp", name: "created_at" }),
     __metadata("design:type", Date)
 ], Product.prototype, "createdAt", void 0);
@@ -92,11 +119,23 @@ __decorate([
     __metadata("design:type", Date)
 ], Product.prototype, "updatedAt", void 0);
 __decorate([
-    OneToMany(() => ProductVariant, (variant) => variant.product),
+    Column("varchar", { name: "meta_title", nullable: true }),
+    __metadata("design:type", Object)
+], Product.prototype, "metaTitle", void 0);
+__decorate([
+    Column("text", { name: "meta_description", nullable: true }),
+    __metadata("design:type", Object)
+], Product.prototype, "metaDescription", void 0);
+__decorate([
+    Column("simple-array", { nullable: true }),
+    __metadata("design:type", Object)
+], Product.prototype, "tags", void 0);
+__decorate([
+    OneToMany(() => ProductVariant, (variant) => variant.product, { cascade: true }),
     __metadata("design:type", Array)
 ], Product.prototype, "variants", void 0);
 __decorate([
-    OneToMany(() => ProductImage, (image) => image.product),
+    OneToMany(() => ProductImage, (image) => image.product, { cascade: true }),
     __metadata("design:type", Array)
 ], Product.prototype, "images", void 0);
 __decorate([
@@ -104,7 +143,7 @@ __decorate([
     __metadata("design:type", Array)
 ], Product.prototype, "reviews", void 0);
 __decorate([
-    OneToMany(() => DesignArea, (area) => area.product),
+    OneToMany(() => DesignArea, (area) => area.product, { cascade: true }),
     __metadata("design:type", Array)
 ], Product.prototype, "designAreas", void 0);
 Product = __decorate([

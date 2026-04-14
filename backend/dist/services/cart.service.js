@@ -40,7 +40,7 @@ export const addToCart = async (userId, data) => {
         productId: variant.productId,
         variantId: variant.id,
         quantity: data.quantity,
-        unitPrice: variant.priceAdj ? (parseFloat(variant.product.basePrice) + parseFloat(variant.priceAdj)) : variant.product.basePrice,
+        unitPrice: Number(variant.product.basePrice) + Number(variant.priceAdj || 0),
         notes: data.notes
     });
     await cartItemRepo.save(cartItem);

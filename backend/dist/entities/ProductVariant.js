@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 // src/entities/ProductVariant.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
 import { Product } from "./Product.js";
-import { ShirtSize } from "../types/enums.js";
 let ProductVariant = class ProductVariant {
     id;
     productId;
@@ -37,7 +36,7 @@ __decorate([
     __metadata("design:type", Product)
 ], ProductVariant.prototype, "product", void 0);
 __decorate([
-    Column({ type: "enum", enum: ShirtSize }),
+    Column("varchar"),
     __metadata("design:type", String)
 ], ProductVariant.prototype, "size", void 0);
 __decorate([
@@ -61,8 +60,8 @@ __decorate([
     __metadata("design:type", Object)
 ], ProductVariant.prototype, "priceAdj", void 0);
 __decorate([
-    Column("varchar", { name: "image_url", nullable: true }),
-    __metadata("design:type", String)
+    Column("text", { name: "image_url", nullable: true }),
+    __metadata("design:type", Object)
 ], ProductVariant.prototype, "imageUrl", void 0);
 ProductVariant = __decorate([
     Entity('product_variants')

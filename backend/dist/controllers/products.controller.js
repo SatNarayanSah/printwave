@@ -1,5 +1,5 @@
 import { AppDataSource } from '../config/data-source.js';
-import { Product } from '../entities/Product.js';
+import { Product, ProductType } from '../entities/Product.js';
 import { Review } from '../entities/Review.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -22,6 +22,8 @@ const getPrimaryImageUrl = (images) => {
     const sorted = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
     return sorted[0]?.url ?? null;
 };
+const toStringArray = (value) => (Array.isArray(value) ? value.map(String) : []);
+const getProductTypeOrDefault = (value) => value ?? ProductType.APPAREL;
 export const getProducts = async (req, res, next) => {
     try {
         const { page = '1', limit = '20', category, search, minPrice, maxPrice } = req.query;
@@ -85,11 +87,16 @@ export const getProducts = async (req, res, next) => {
                 slug: p.slug,
                 name: p.name,
                 description: p.description,
+                productType: getProductTypeOrDefault(p.productType),
                 basePrice: parseDecimal(p.basePrice),
-                fabric: p.fabric,
+                material: p.material,
+                fabric: p.material,
                 gsm: p.gsm,
+                weightGrams: p.weightGrams == null ? null : parseDecimal(p.weightGrams),
                 isCustomizable: p.isCustomizable,
+                isActive: p.isActive,
                 isFeatured: p.isFeatured,
+                tags: toStringArray(p.tags),
                 inStock,
                 primaryImageUrl: getPrimaryImageUrl(p.images),
                 reviewCount: agg.reviewCount,
@@ -137,7 +144,12 @@ export const getProductBySlug = async (req, res, next) => {
         const inStock = Array.isArray(product.variants) ? product.variants.some(v => (v.stock ?? 0) > 0) : true;
         const dto = {
             ...product,
+            productType: getProductTypeOrDefault(product.productType),
             basePrice: parseDecimal(product.basePrice),
+            material: product.material,
+            fabric: product.material,
+            weightGrams: product.weightGrams == null ? null : parseDecimal(product.weightGrams),
+            tags: toStringArray(product.tags),
             variants: (product.variants ?? []).map(v => ({
                 ...v,
                 priceAdj: parseDecimal(v.priceAdj),

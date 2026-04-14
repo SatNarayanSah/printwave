@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ProductListItemDto } from '@/lib/api/types';
+import { formatNPR, getMediaUrl } from '@/lib/utils';
 
 interface ProductCardProps {
   product: ProductListItemDto;
@@ -10,7 +11,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const rating = Number.isFinite(product.avgRating) ? product.avgRating : 0;
-  const imageUrl = product.primaryImageUrl ?? '/placeholder.svg';
+  const imageUrl = getMediaUrl(product.primaryImageUrl ?? '/placeholder.svg');
 
   return (
     <Link href={`/products/${product.slug}`}>
@@ -54,7 +55,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
           <div className="flex items-center justify-between pt-2">
             <div className="flex items-baseline space-x-2">
-              <span className="font-bold text-lg text-foreground">${product.basePrice.toFixed(2)}</span>
+              <span className="font-bold text-lg text-foreground">{formatNPR(product.basePrice)}</span>
             </div>
           </div>
 

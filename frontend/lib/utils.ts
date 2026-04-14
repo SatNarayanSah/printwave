@@ -11,3 +11,9 @@ export function getMediaUrl(path: string | null | undefined) {
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
   return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`
 }
+
+export function formatNPR(amount: number | string | null | undefined) {
+  const value = typeof amount === 'number' ? amount : Number(amount ?? 0)
+  const safeValue = Number.isFinite(value) ? value : 0
+  return `रू ${safeValue.toFixed(2)}`
+}
