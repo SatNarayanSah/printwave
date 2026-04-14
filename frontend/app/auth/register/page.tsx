@@ -44,8 +44,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-blue-50 to-green-50">
+      <Card className="w-full max-w-md shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl">Create account</CardTitle>
           <CardDescription>Get started with Persomith.</CardDescription>
@@ -56,9 +56,9 @@ export default function RegisterPage() {
               <p className="text-muted-foreground">
                 Registration successful. Please check your email for the verification link, then login.
               </p>
-              <Link href="/auth/login">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground w-full">Go to Login</Button>
-              </Link>
+              <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground w-full">
+                <Link href="/auth/login">Go to Login</Link>
+              </Button>
             </div>
           ) : (
             <form onSubmit={onSubmit} className="space-y-4">

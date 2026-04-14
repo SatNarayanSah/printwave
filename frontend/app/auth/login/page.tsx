@@ -45,8 +45,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-blue-50 to-green-50">
+      <Card className="w-full max-w-md shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <CardDescription>Login to continue shopping.</CardDescription>
