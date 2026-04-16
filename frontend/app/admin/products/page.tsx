@@ -9,6 +9,7 @@ import {
   Layers,
   Palette,
   Eye,
+  PencilLine,
   Settings2,
   MoreVertical,
   Trash2,
@@ -263,8 +264,15 @@ export default function ProductManagementPage() {
                             <Eye className="h-4 w-4" />
                           </a>
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-blue-500" title="Manage variants">
-                          <Settings2 className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-blue-500" title="Edit product" asChild>
+                          <Link href={`/admin/products/${prod.id}/edit`}>
+                            <PencilLine className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-violet-600" title="Manage variants" asChild>
+                          <Link href={`/admin/products/${prod.id}/variants`}>
+                            <Settings2 className="h-4 w-4" />
+                          </Link>
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -273,6 +281,18 @@ export default function ProductManagementPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-40 rounded-xl">
+                            <DropdownMenuItem className="gap-2 font-bold" asChild>
+                              <Link href={`/admin/products/${prod.id}/edit`}>
+                                <PencilLine className="h-4 w-4" />
+                                Edit
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2 font-bold" asChild>
+                              <Link href={`/admin/products/${prod.id}/variants`}>
+                                <Settings2 className="h-4 w-4" />
+                                Variants
+                              </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="gap-2 font-bold text-destructive focus:bg-destructive/10 focus:text-destructive"

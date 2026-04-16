@@ -27,6 +27,9 @@ const PAGE_NAMES: Record<string, string> = {
   '/admin': 'Dashboard',
   '/admin/users': 'User Management',
   '/admin/products': 'Product Management',
+  '/admin/products/new': 'Create Product',
+  '/admin/products/[id]/edit': 'Edit Product',
+  '/admin/products/[id]/variants': 'Variant Manager',
   '/admin/orders': 'Order Management',
   '/admin/designs': 'Design Management',
   '/admin/shipping': 'Shipping Control',
@@ -73,7 +76,17 @@ export default function AdminLayout({
   }
 
   // Find best matching breadcrumb name
-  const pageName = PAGE_NAMES[pathname] ?? PAGE_NAMES[Object.keys(PAGE_NAMES).find(k => k !== '/admin' && pathname.startsWith(k)) ?? ''] ?? 'Admin';
+  const dynamicPageName =
+    pathname.match(/^\/admin\/products\/[^/]+\/edit$/)
+      ? 'Edit Product'
+      : pathname.match(/^\/admin\/products\/[^/]+\/variants$/)
+        ? 'Variant Manager'
+        : undefined;
+  const pageName =
+    dynamicPageName ??
+    PAGE_NAMES[pathname] ??
+    PAGE_NAMES[Object.keys(PAGE_NAMES).find(k => k !== '/admin' && pathname.startsWith(k)) ?? ''] ??
+    'Admin';
 
   return (
     <SidebarProvider>
@@ -130,4 +143,3 @@ export default function AdminLayout({
     </SidebarProvider>
   );
 }
-
